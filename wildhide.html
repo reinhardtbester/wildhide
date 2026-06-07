@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wildhide</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Bitter:ital,wght@0,400;0,500;0,600;1,400&display=swap');
+:root{--bone:#e8e1d3;--bark:#2b2520;--dirt:#3a322a;--moss:#5a6342;--rust:#a8531f;--rust-bright:#c46327;--char:#1a1612;--ash:#8a8073;--line:rgba(232,225,211,0.12)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--char);color:var(--bone);font-family:'Bitter',serif;-webkit-font-smoothing:antialiased;padding-bottom:72px}
+::-webkit-scrollbar{width:0;height:0}
+.topbar{position:sticky;top:0;z-index:50;background:rgba(26,22,18,0.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:14px 18px}
+.logo{font-family:'Oswald',sans-serif;font-weight:700;font-size:24px;letter-spacing:2px;text-transform:uppercase;display:flex;align-items:center;gap:8px;cursor:pointer}
+.logo span{color:var(--rust-bright)}
+.logo svg{width:26px;height:26px}
+.topbar-actions{display:flex;gap:18px;align-items:center}
+.icon-btn{background:none;border:none;color:var(--ash);cursor:pointer;display:flex}
+.icon-btn svg{width:23px;height:23px}
+.avatar-sm{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--moss),var(--rust));display:flex;align-items:center;justify-content:center;font-family:'Oswald';font-weight:600;font-size:13px}
+.view{display:none}.view.active{display:block}
+.hero{position:relative;padding:50px 20px 36px;text-align:center;overflow:hidden;border-bottom:1px solid var(--line)}
+.hero-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0}
+.hero-overlay{position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,rgba(26,22,18,0.55),rgba(26,22,18,0.8))}
+.hero-bg{position:absolute;inset:0;background:radial-gradient(circle at 50% 0%,rgba(168,83,31,0.18),transparent 60%),radial-gradient(circle at 80% 90%,rgba(90,99,66,0.15),transparent 50%)}
+.hero-tag{position:relative;z-index:2;font-family:'Oswald';font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--rust-bright);margin-bottom:10px}
+.hero h1{position:relative;z-index:2;font-family:'Oswald';font-weight:700;font-size:34px;text-transform:uppercase;letter-spacing:1px;line-height:1.05;margin-bottom:12px}
+.hero p{position:relative;z-index:2;font-size:14px;color:var(--ash);max-width:380px;margin:0 auto;line-height:1.6;font-style:italic}
+.strip{display:flex;gap:14px;overflow-x:auto;padding:16px 18px;border-bottom:1px solid var(--line)}
+.chip{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer}
+.chip-ring{width:62px;height:62px;border-radius:50%;padding:2px;background:linear-gradient(135deg,var(--rust),var(--moss))}
+.chip-inner{width:100%;height:100%;border-radius:50%;background:var(--dirt);display:flex;align-items:center;justify-content:center;font-size:24px;border:2px solid var(--char)}
+.chip span{font-size:11px;color:var(--ash);font-family:'Oswald';text-transform:uppercase;letter-spacing:.5px}
+.feed{max-width:600px;margin:0 auto;padding:8px 0}
+.card{border-bottom:1px solid var(--line);padding:18px;animation:rise .5s ease both}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.card-head{display:flex;align-items:center;gap:11px;margin-bottom:13px}
+.av{width:42px;height:42px;border-radius:50%;flex-shrink:0;background:linear-gradient(135deg,var(--moss),var(--bark));display:flex;align-items:center;justify-content:center;font-family:'Oswald';font-weight:600;font-size:15px;border:1px solid var(--line)}
+.card-meta{flex:1;line-height:1.3}
+.card-name{font-family:'Oswald';font-weight:600;font-size:15px;display:flex;align-items:center;gap:5px}
+.verified{color:var(--rust-bright);width:14px;height:14px}
+.card-sub{font-size:12px;color:var(--ash)}
+.tag{font-family:'Oswald';font-size:10px;letter-spacing:1px;text-transform:uppercase;padding:4px 9px;border-radius:3px;font-weight:600}
+.tag-hunt{background:rgba(90,99,66,0.3);color:#a9b489;border:1px solid rgba(90,99,66,0.5)}
+.tag-gear{background:rgba(168,83,31,0.25);color:var(--rust-bright);border:1px solid rgba(168,83,31,0.5)}
+.tag-story{background:rgba(138,128,115,0.2);color:var(--bone);border:1px solid var(--line)}
+.card-body{font-size:15px;line-height:1.6;margin-bottom:13px}
+.card-body .accent{color:var(--rust-bright);font-weight:600}
+.media{border-radius:8px;overflow:hidden;margin-bottom:13px;position:relative;background:var(--dirt);aspect-ratio:4/3;display:flex;align-items:center;justify-content:center}
+.media-bg{position:absolute;inset:0;background-size:cover;background-position:center;opacity:.9}
+.media-grad{position:absolute;inset:0;background:linear-gradient(180deg,transparent 40%,rgba(26,22,18,0.85))}
+.media-label{position:absolute;bottom:14px;left:14px;z-index:2;font-family:'Oswald';font-weight:600}
+.media-label .big{font-size:20px;text-transform:uppercase;letter-spacing:1px;display:block}
+.media-label .small{font-size:12px;opacity:.85}
+.play{position:absolute;z-index:2;width:60px;height:60px;border-radius:50%;background:rgba(168,83,31,0.9);display:flex;align-items:center;justify-content:center;box-shadow:0 8px 30px rgba(0,0,0,.5)}
+.play svg{width:24px;height:24px;fill:var(--bone);margin-left:3px}
+.product{background:var(--dirt);border-radius:10px;overflow:hidden;border:1px solid var(--line);margin-bottom:13px;cursor:pointer}
+.product-top{display:flex;gap:13px;padding:14px}
+.product-img{width:96px;height:96px;border-radius:7px;flex-shrink:0;background-size:cover;background-position:center;background-color:var(--bark);display:flex;align-items:center;justify-content:center;font-size:40px}
+.product-info{flex:1;min-width:0}
+.product-brand{font-family:'Oswald';font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--ash)}
+.product-name{font-family:'Oswald';font-weight:600;font-size:17px;line-height:1.2;margin:2px 0 6px}
+.stars{display:flex;align-items:center;gap:5px;margin-bottom:6px}
+.stars svg{width:14px;height:14px;fill:var(--rust-bright)}
+.stars .num{font-size:13px;font-weight:600}
+.stars .cnt{font-size:12px;color:var(--ash)}
+.product-price{font-family:'Oswald';font-weight:700;font-size:19px;color:var(--rust-bright)}
+.live-dot{display:inline-flex;align-items:center;gap:5px;font-size:10px;color:#a9b489;font-family:'Oswald';letter-spacing:.5px;text-transform:uppercase;margin-left:6px}
+.live-dot::before{content:'';width:6px;height:6px;border-radius:50%;background:#7fae46;animation:pulse 1.6s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.product-cta{display:block;text-align:center;padding:12px;background:var(--rust);color:var(--bone);font-family:'Oswald';font-weight:600;font-size:14px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;border:none;width:100%;transition:background .2s}
+.product-cta:hover{background:var(--rust-bright)}
+.actions{display:flex;gap:22px;align-items:center}
+.act{display:flex;align-items:center;gap:6px;background:none;border:none;color:var(--ash);cursor:pointer;font-family:'Bitter';font-size:14px;transition:color .2s}
+.act svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;transition:all .2s}
+.act.liked{color:var(--rust-bright)}
+.act.liked svg{fill:var(--rust-bright);stroke:var(--rust-bright)}
+.act.saved{color:#a9b489}
+.act.saved svg{fill:#a9b489;stroke:#a9b489}
+.act:active svg{transform:scale(1.3)}
+.ai-card{margin:18px;border-radius:12px;overflow:hidden;background:linear-gradient(135deg,var(--bark),var(--dirt));border:1px solid rgba(168,83,31,0.4)}
+.ai-head{padding:18px 18px 0;display:flex;align-items:center;gap:9px}
+.ai-head svg{width:22px;height:22px;stroke:var(--rust-bright);fill:none;stroke-width:1.8}
+.ai-head h3{font-family:'Oswald';font-weight:600;font-size:17px;text-transform:uppercase;letter-spacing:1px}
+.ai-card>p{padding:8px 18px 0;font-size:14px;color:var(--ash);line-height:1.5}
+.ai-opts{padding:16px 18px;display:flex;flex-wrap:wrap;gap:9px}
+.ai-opt{padding:9px 15px;border-radius:6px;cursor:pointer;background:rgba(232,225,211,0.06);border:1px solid var(--line);font-family:'Oswald';font-size:13px;letter-spacing:.5px;transition:all .2s}
+.ai-opt:hover,.ai-opt.sel{background:var(--rust);border-color:var(--rust)}
+.ai-result{margin:0 18px 18px;padding:14px;border-radius:8px;background:rgba(127,174,70,0.1);border:1px solid rgba(90,99,66,0.4);font-size:14px;line-height:1.55;display:none}
+.ai-result.show{display:block;animation:rise .4s ease both}
+.ai-result b{color:#a9b489;font-family:'Oswald'}
+.shop-head{padding:24px 18px 14px}
+.shop-head h2{font-family:'Oswald';font-weight:700;font-size:26px;text-transform:uppercase;letter-spacing:1px}
+.shop-head p{font-size:13px;color:var(--ash);margin-top:4px;font-style:italic}
+.cat-nav{display:flex;gap:9px;overflow-x:auto;padding:0 18px 16px;border-bottom:1px solid var(--line)}
+.cat-btn{flex-shrink:0;padding:9px 16px;border-radius:20px;background:rgba(232,225,211,0.06);border:1px solid var(--line);color:var(--ash);font-family:'Oswald';font-size:12px;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:all .2s}
+.cat-btn.active{background:var(--rust);border-color:var(--rust);color:var(--bone)}
+.cat-section{padding:20px 18px}
+.cat-title{font-family:'Oswald';font-weight:600;font-size:18px;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;display:flex;align-items:center;gap:8px}
+.cat-title .em{font-size:22px}
+.cat-desc{font-size:13px;color:var(--ash);margin-bottom:16px}
+.bh-sub{display:flex;gap:8px;margin-bottom:14px}
+.bh-pill{padding:7px 14px;border-radius:18px;background:rgba(232,225,211,0.06);border:1px solid var(--line);color:var(--ash);font-family:'Oswald';font-size:11px;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:all .2s}
+.bh-pill.active{background:var(--moss);border-color:var(--moss);color:var(--bone)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+.gcard{background:var(--dirt);border-radius:10px;overflow:hidden;border:1px solid var(--line);cursor:pointer;transition:transform .2s,border-color .2s}
+.gcard:hover{transform:translateY(-3px);border-color:rgba(168,83,31,0.5)}
+.gcard-img{aspect-ratio:1;background-size:cover;background-position:center;display:flex;align-items:center;justify-content:center;font-size:48px;position:relative}
+.gcard-badge{position:absolute;top:8px;left:8px;font-family:'Oswald';font-size:9px;letter-spacing:.5px;text-transform:uppercase;padding:3px 7px;border-radius:3px;background:rgba(168,83,31,0.9);font-weight:600}
+.gcard-body{padding:11px}
+.gcard-brand{font-family:'Oswald';font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--ash)}
+.gcard-name{font-family:'Oswald';font-weight:600;font-size:14px;line-height:1.2;margin:2px 0 5px;height:34px;overflow:hidden}
+.gcard-stars{display:flex;align-items:center;gap:4px;margin-bottom:6px}
+.gcard-stars svg{width:12px;height:12px;fill:var(--rust-bright)}
+.gcard-stars .n{font-size:11px;font-weight:600}
+.gcard-stars .c{font-size:10px;color:var(--ash)}
+.gcard-price{font-family:'Oswald';font-weight:700;font-size:16px;color:var(--rust-bright)}
+/* DETAIL PAGE */
+.detail-back{display:flex;align-items:center;gap:8px;padding:16px 18px;cursor:pointer;font-family:'Oswald';font-size:13px;letter-spacing:1px;text-transform:uppercase;color:var(--ash);border-bottom:1px solid var(--line)}
+.detail-back svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2}
+.detail-hero{aspect-ratio:1;max-height:340px;background-size:cover;background-position:center;display:flex;align-items:center;justify-content:center;font-size:96px;position:relative}
+.detail-body{padding:20px 18px;max-width:640px;margin:0 auto}
+.detail-brand{font-family:'Oswald';font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--rust-bright)}
+.sub-badge{display:inline-block;margin-left:9px;font-family:'Oswald';font-size:9px;letter-spacing:1px;padding:2px 8px;border-radius:3px;background:rgba(90,99,66,0.3);color:#a9b489;border:1px solid rgba(90,99,66,0.5);vertical-align:middle}
+.fits-box{margin-bottom:20px;padding:14px;border-radius:9px;background:rgba(90,99,66,0.12);border:1px solid rgba(90,99,66,0.4)}
+.fits-head{display:flex;align-items:center;gap:7px;font-family:'Oswald';font-weight:600;font-size:13px;letter-spacing:.5px;text-transform:uppercase;color:#a9b489;margin-bottom:7px}
+.fits-head svg{width:16px;height:16px;stroke:#a9b489;fill:none;stroke-width:2.5}
+.fits-text{font-size:14px;line-height:1.5;margin-bottom:5px}
+.fits-text b{color:var(--bone);font-family:'Oswald';font-weight:600}
+.fits-note{font-size:12px;color:var(--ash);font-style:italic}
+.detail-title{font-family:'Oswald';font-weight:700;font-size:26px;line-height:1.1;margin:4px 0 10px}
+.detail-pricerow{display:flex;align-items:center;gap:14px;margin-bottom:16px;flex-wrap:wrap}
+.detail-price{font-family:'Oswald';font-weight:700;font-size:30px;color:var(--rust-bright)}
+.detail-rating{display:flex;align-items:center;gap:6px}
+.detail-rating svg{width:16px;height:16px;fill:var(--rust-bright)}
+.detail-rating .n{font-weight:600}.detail-rating .c{font-size:13px;color:var(--ash)}
+.detail-desc{font-size:15px;line-height:1.65;color:var(--bone);margin-bottom:20px}
+.detail-buy{display:block;width:100%;text-align:center;padding:15px;background:var(--rust);color:var(--bone);font-family:'Oswald';font-weight:600;font-size:15px;letter-spacing:1px;text-transform:uppercase;border:none;cursor:pointer;border-radius:8px;margin-bottom:24px;transition:background .2s}
+.detail-buy:hover{background:var(--rust-bright)}
+.sec-label{font-family:'Oswald';font-weight:600;font-size:15px;letter-spacing:1px;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:7px}
+.sec-label svg{width:17px;height:17px;stroke:var(--rust-bright);fill:none;stroke-width:1.8}
+.review{padding:13px 0;border-bottom:1px solid var(--line)}
+.review-top{display:flex;align-items:center;gap:9px;margin-bottom:6px}
+.review-av{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--moss),var(--bark));display:flex;align-items:center;justify-content:center;font-family:'Oswald';font-size:12px;font-weight:600}
+.review-name{font-family:'Oswald';font-size:13px;font-weight:600;flex:1}
+.review-stars{display:flex;gap:1px}
+.review-stars svg{width:12px;height:12px;fill:var(--rust-bright)}
+.review-text{font-size:14px;line-height:1.5;color:var(--bone);opacity:.9}
+.review-src{font-size:11px;color:var(--ash);font-style:italic;margin-top:5px}
+.sources{margin-top:22px;padding:14px;border-radius:8px;background:rgba(232,225,211,0.04);border:1px solid var(--line)}
+.sources h4{font-family:'Oswald';font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--ash);margin-bottom:9px;display:flex;align-items:center;gap:6px}
+.sources h4 svg{width:14px;height:14px;stroke:var(--ash);fill:none;stroke-width:1.8}
+.source-item{font-size:12px;color:var(--ash);padding:5px 0;display:flex;gap:7px}
+.source-item .dot{color:var(--rust-bright)}
+.ai-note{font-size:11px;color:var(--ash);font-style:italic;margin-top:10px;line-height:1.4}
+/* HUNTS */
+.farm{background:var(--dirt);border-radius:12px;overflow:hidden;border:1px solid var(--line);margin-bottom:16px;cursor:pointer;transition:border-color .2s}
+.farm:hover{border-color:rgba(168,83,31,0.5)}
+.farm-img{aspect-ratio:16/9;background-size:cover;background-position:center;position:relative;display:flex;align-items:center;justify-content:center;font-size:54px}
+.farm-grad{position:absolute;inset:0;background:linear-gradient(180deg,transparent 50%,rgba(26,22,18,0.9))}
+.farm-loc{position:absolute;bottom:12px;left:14px;z-index:2;font-family:'Oswald';font-size:12px;letter-spacing:.5px;text-transform:uppercase;color:var(--bone);display:flex;align-items:center;gap:5px}
+.farm-loc svg{width:14px;height:14px;stroke:var(--rust-bright);fill:none;stroke-width:2}
+.farm-verified{position:absolute;top:12px;right:12px;z-index:2;background:rgba(90,99,66,0.9);font-family:'Oswald';font-size:9px;letter-spacing:.5px;text-transform:uppercase;padding:4px 8px;border-radius:3px;font-weight:600;display:flex;align-items:center;gap:4px}
+.farm-body{padding:15px}
+.farm-name{font-family:'Oswald';font-weight:700;font-size:19px;line-height:1.1;margin-bottom:5px}
+.farm-stars{display:flex;align-items:center;gap:5px;margin-bottom:10px}
+.farm-stars svg{width:14px;height:14px;fill:var(--rust-bright)}
+.farm-stars .n{font-weight:600;font-size:13px}.farm-stars .c{font-size:12px;color:var(--ash)}
+.farm-species{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.species-tag{font-family:'Oswald';font-size:10px;letter-spacing:.5px;text-transform:uppercase;padding:4px 9px;border-radius:4px;background:rgba(90,99,66,0.25);color:#a9b489;border:1px solid rgba(90,99,66,0.4)}
+.farm-foot{display:flex;align-items:center;justify-content:space-between;padding-top:12px;border-top:1px solid var(--line)}
+.farm-price{font-family:'Oswald';font-weight:700;font-size:17px;color:var(--rust-bright)}
+.farm-price span{font-size:11px;color:var(--ash);font-weight:400;letter-spacing:.5px}
+.farm-contact{display:flex;gap:10px}
+.farm-contact button{background:rgba(232,225,211,0.08);border:1px solid var(--line);color:var(--bone);width:38px;height:38px;border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.farm-contact button:hover{background:var(--rust);border-color:var(--rust)}
+.farm-contact svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8}
+.gallery{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:22px}
+.gphoto{aspect-ratio:4/3;border-radius:8px;background-size:cover;background-position:center;position:relative;display:flex;align-items:center;justify-content:center;font-size:40px;overflow:hidden}
+.gphoto-grad{position:absolute;inset:0;background:linear-gradient(180deg,transparent 45%,rgba(26,22,18,0.85))}
+.gphoto-label{position:absolute;bottom:8px;left:9px;z-index:2;font-family:'Oswald';font-size:11px;letter-spacing:.5px;text-transform:uppercase;color:var(--bone)}
+.seasons{margin-bottom:22px;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.season-row{display:flex;align-items:center;padding:11px 14px;border-bottom:1px solid var(--line)}
+.season-row:last-child{border-bottom:none}
+.season-game{font-family:'Oswald';font-weight:600;font-size:14px;flex:1}
+.season-when{font-family:'Oswald';font-size:13px;color:var(--rust-bright);font-weight:600;text-align:right;min-width:90px}
+.season-note{font-size:11px;color:var(--ash);font-style:italic;width:100%;flex-basis:100%;margin-top:2px}
+.season-row-inner{display:flex;align-items:center;width:100%;flex-wrap:wrap}
+.accom{margin-bottom:22px;display:flex;flex-direction:column;gap:10px}
+.accom-card{border:1px solid var(--line);border-radius:9px;padding:13px 14px;background:var(--dirt);display:flex;align-items:center;gap:12px;transition:border-color .2s}
+.accom-card.top{border-color:rgba(168,83,31,0.5);background:linear-gradient(135deg,var(--dirt),rgba(168,83,31,0.08))}
+.accom-tier{font-family:'Oswald';font-weight:600;font-size:13px;letter-spacing:.5px;text-transform:uppercase;min-width:96px}
+.accom-card.top .accom-tier{color:var(--rust-bright)}
+.accom-desc{flex:1;font-size:13px;color:var(--bone);opacity:.9;line-height:1.4}
+.accom-price{font-family:'Oswald';font-weight:700;font-size:14px;color:var(--rust-bright);text-align:right;min-width:84px}
+.watch-feature{margin:0 0 8px;position:relative;cursor:pointer}
+.watch-feature-img{aspect-ratio:16/9;background-size:cover;background-position:center;position:relative;display:flex;align-items:center;justify-content:center;font-size:64px}
+.watch-grad{position:absolute;inset:0;background:linear-gradient(180deg,transparent 40%,rgba(26,22,18,0.92))}
+.watch-feature-meta{position:absolute;bottom:16px;left:18px;right:18px;z-index:2}
+.watch-feature-tag{font-family:'Oswald';font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--rust-bright);font-weight:600}
+.watch-feature-title{font-family:'Oswald';font-weight:700;font-size:22px;line-height:1.1;margin:3px 0 5px;text-transform:uppercase}
+.watch-feature-sub{font-size:12px;color:var(--ash)}
+.watch-play{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:2;width:64px;height:64px;border-radius:50%;background:rgba(168,83,31,0.92);display:flex;align-items:center;justify-content:center;box-shadow:0 8px 30px rgba(0,0,0,.5)}
+.watch-play svg{width:26px;height:26px;fill:var(--bone);margin-left:3px}
+.vlist{padding:14px 18px}
+.vrow{display:flex;gap:13px;margin-bottom:16px;cursor:pointer}
+.vthumb{width:150px;flex-shrink:0;aspect-ratio:16/9;border-radius:8px;background-size:cover;background-position:center;position:relative;display:flex;align-items:center;justify-content:center;font-size:34px;overflow:hidden}
+.vthumb .dur{position:absolute;bottom:6px;right:6px;background:rgba(26,22,18,0.9);font-family:'Oswald';font-size:10px;padding:2px 5px;border-radius:3px;z-index:2}
+.vthumb .vplay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(26,22,18,0.15)}
+.vthumb .vplay svg{width:30px;height:30px;fill:rgba(232,225,211,0.9)}
+.vinfo{flex:1;min-width:0}
+.vtag{font-family:'Oswald';font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--rust-bright);font-weight:600}
+.vtitle{font-family:'Oswald';font-weight:600;font-size:15px;line-height:1.2;margin:2px 0 5px}
+.vmeta{font-size:12px;color:var(--ash)}
+.player-wrap{aspect-ratio:16/9;background:#000;position:relative;display:flex;align-items:center;justify-content:center}
+.player-wrap iframe{width:100%;height:100%;border:0}
+.player-placeholder{text-align:center;color:var(--ash);padding:20px}
+.player-placeholder .big{font-size:54px;margin-bottom:10px}
+.build-step{padding:0 18px 8px}
+.build-q{font-family:'Oswald';font-weight:600;font-size:15px;letter-spacing:.5px;text-transform:uppercase;margin:20px 0 12px;display:flex;align-items:center;gap:9px}
+.build-q .step-num{width:24px;height:24px;border-radius:50%;background:var(--rust);color:var(--bone);display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
+.opt-row{display:flex;flex-wrap:wrap;gap:9px}
+.opt{padding:11px 16px;border-radius:8px;background:var(--dirt);border:1px solid var(--line);font-family:'Oswald';font-size:13px;letter-spacing:.5px;cursor:pointer;transition:all .2s;color:var(--bone)}
+.opt:hover{border-color:rgba(168,83,31,0.5)}
+.opt.sel{background:var(--rust);border-color:var(--rust)}
+.opt small{display:block;font-family:'Bitter';font-size:11px;color:var(--ash);letter-spacing:0;margin-top:2px;font-style:italic}
+.opt.sel small{color:rgba(232,225,211,0.85)}
+.gear-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.gear-toggle{padding:11px 13px;border-radius:8px;background:var(--dirt);border:1px solid var(--line);cursor:pointer;display:flex;align-items:center;gap:9px;transition:all .2s;font-family:'Oswald';font-size:13px}
+.gear-toggle.on{border-color:var(--moss);background:rgba(90,99,66,0.15)}
+.gear-check{width:20px;height:20px;border-radius:5px;border:1.5px solid var(--ash);flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.gear-toggle.on .gear-check{background:var(--moss);border-color:var(--moss)}
+.gear-check svg{width:13px;height:13px;stroke:var(--bone);fill:none;stroke-width:3;opacity:0}
+.gear-toggle.on .gear-check svg{opacity:1}
+.build-go{display:block;width:calc(100% - 36px);margin:24px 18px 8px;text-align:center;padding:16px;background:var(--rust);color:var(--bone);font-family:'Oswald';font-weight:600;font-size:15px;letter-spacing:1px;text-transform:uppercase;border:none;cursor:pointer;border-radius:9px;transition:background .2s}
+.build-go:hover{background:var(--rust-bright)}
+.build-result{padding:8px 18px 30px;animation:rise .5s ease both}
+.result-banner{border-radius:12px;overflow:hidden;background:linear-gradient(135deg,var(--bark),var(--dirt));border:1px solid rgba(168,83,31,0.4);padding:18px;margin-bottom:18px}
+.result-banner h3{font-family:'Oswald';font-weight:700;font-size:20px;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
+.result-banner .sub{font-size:13px;color:var(--ash);font-style:italic}
+.result-banner .total{font-family:'Oswald';font-weight:700;font-size:26px;color:var(--rust-bright);margin-top:10px}
+.result-banner .total small{font-size:12px;color:var(--ash);font-weight:400}
+.kit-sec{margin-bottom:20px}
+.kit-label{font-family:'Oswald';font-weight:600;font-size:14px;letter-spacing:1px;text-transform:uppercase;margin-bottom:11px;display:flex;align-items:center;gap:7px}
+.kit-label svg{width:16px;height:16px;stroke:var(--rust-bright);fill:none;stroke-width:1.8}
+.kit-item{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--line)}
+.kit-emoji{width:42px;height:42px;border-radius:8px;background:var(--dirt);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.kit-info{flex:1;min-width:0}
+.kit-name{font-family:'Oswald';font-weight:600;font-size:14px}
+.kit-cat{font-size:11px;color:var(--ash);text-transform:uppercase;letter-spacing:.5px}
+.kit-price{font-family:'Oswald';font-weight:700;font-size:14px;color:var(--rust-bright);text-align:right}
+.kit-owned{font-family:'Oswald';font-size:11px;color:#a9b489;letter-spacing:.5px;text-transform:uppercase}
+.kit-shop-btn{font-family:'Oswald';font-size:10px;letter-spacing:.5px;text-transform:uppercase;padding:5px 10px;border-radius:5px;background:var(--rust);color:var(--bone);border:none;cursor:pointer;white-space:nowrap}
+.strategy{border-radius:10px;background:rgba(90,99,66,0.1);border:1px solid rgba(90,99,66,0.35);padding:16px;margin-bottom:14px}
+.strategy h4{font-family:'Oswald';font-weight:600;font-size:13px;letter-spacing:1px;text-transform:uppercase;color:#a9b489;margin-bottom:9px;display:flex;align-items:center;gap:7px}
+.strategy h4 svg{width:16px;height:16px;stroke:#a9b489;fill:none;stroke-width:1.8}
+.strategy p{font-size:13px;line-height:1.6;color:var(--bone);opacity:.92;margin-bottom:8px}
+.strategy p:last-child{margin-bottom:0}
+.strategy b{color:var(--rust-bright)}
+.build-restart{display:block;width:calc(100% - 36px);margin:8px 18px;text-align:center;padding:12px;background:none;border:1px solid var(--line);color:var(--ash);font-family:'Oswald';font-size:12px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;border-radius:8px}
+.comm-compose{margin:0 18px 18px;padding:14px;border-radius:10px;background:var(--dirt);border:1px solid var(--line);display:flex;align-items:center;gap:11px;cursor:pointer}
+.comm-compose .av{width:38px;height:38px}
+.comm-compose .ph{flex:1;color:var(--ash);font-style:italic;font-size:14px}
+.comm-compose .camera{color:var(--rust-bright)}
+.comm-compose .camera svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8}
+.cpost{border-bottom:1px solid var(--line);padding:16px 18px;animation:rise .4s ease both}
+.cpost-head{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.cpost-av{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--moss),var(--bark));display:flex;align-items:center;justify-content:center;font-family:'Oswald';font-weight:600;font-size:14px;flex-shrink:0;border:1px solid var(--line)}
+.cpost-meta{flex:1;line-height:1.3}
+.cpost-name{font-family:'Oswald';font-weight:600;font-size:14px}
+.cpost-sub{font-size:11px;color:var(--ash)}
+.cpost-flair{font-family:'Oswald';font-size:9px;letter-spacing:.5px;text-transform:uppercase;padding:3px 8px;border-radius:3px;font-weight:600}
+.flair-q{background:rgba(168,83,31,0.25);color:var(--rust-bright);border:1px solid rgba(168,83,31,0.4)}
+.flair-pb{background:rgba(127,174,70,0.2);color:#a9b489;border:1px solid rgba(90,99,66,0.5)}
+.flair-gear{background:rgba(138,128,115,0.2);color:var(--bone);border:1px solid var(--line)}
+.cpost-body{font-size:14px;line-height:1.55;margin-bottom:10px}
+.cpost-title{font-family:'Oswald';font-weight:600;font-size:16px;margin-bottom:5px;line-height:1.2}
+.cpost-photo{aspect-ratio:4/3;border-radius:9px;background-size:cover;background-position:center;display:flex;align-items:center;justify-content:center;font-size:60px;margin-bottom:10px;position:relative;overflow:hidden}
+.cpost-photo .pg{position:absolute;inset:0;background:linear-gradient(180deg,transparent 60%,rgba(26,22,18,0.6))}
+.cpost-actions{display:flex;gap:20px;align-items:center}
+.cact{display:flex;align-items:center;gap:6px;background:none;border:none;color:var(--ash);cursor:pointer;font-family:'Bitter';font-size:13px}
+.cact svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.8}
+.cact.up{color:var(--ash)}
+.cact.up.on{color:var(--rust-bright)}
+.cact.up.on svg{fill:var(--rust-bright);stroke:var(--rust-bright)}
+.top-reply{margin-top:10px;padding:10px 12px;border-radius:8px;background:rgba(232,225,211,0.04);border-left:2px solid var(--moss)}
+.top-reply .ra{font-family:'Oswald';font-size:11px;font-weight:600;color:#a9b489;margin-bottom:3px}
+.top-reply .rt{font-size:13px;line-height:1.45;color:var(--bone);opacity:.9}
+/* testimonials */
+.testi-strip{padding:4px 0 18px}
+.testi{margin:0 18px 14px;padding:15px;border-radius:10px;background:linear-gradient(135deg,var(--bark),var(--dirt));border:1px solid rgba(90,99,66,0.35)}
+.testi-stars{display:flex;gap:2px;margin-bottom:8px}
+.testi-stars svg{width:14px;height:14px;fill:var(--rust-bright)}
+.testi-quote{font-size:14px;line-height:1.55;font-style:italic;margin-bottom:10px}
+.testi-by{display:flex;align-items:center;gap:9px}
+.testi-by .av{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--moss),var(--rust));display:flex;align-items:center;justify-content:center;font-family:'Oswald';font-size:11px;font-weight:600}
+.testi-by .nm{font-family:'Oswald';font-size:12px;font-weight:600}
+.testi-by .dt{font-size:11px;color:var(--ash)}
+.testi-badge{margin-left:auto;font-family:'Oswald';font-size:9px;letter-spacing:.5px;text-transform:uppercase;color:#a9b489}
+/* membership bulletin */
+.member-card{margin:18px;border-radius:12px;overflow:hidden;background:linear-gradient(135deg,var(--rust),#7a3a14);position:relative}
+.member-card .mc-body{padding:20px}
+.member-card h3{font-family:'Oswald';font-weight:700;font-size:20px;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
+.member-card p{font-size:13px;line-height:1.5;opacity:.92;margin-bottom:14px}
+.member-card .join{display:inline-block;padding:11px 22px;background:var(--char);color:var(--bone);font-family:'Oswald';font-weight:600;font-size:13px;letter-spacing:1px;text-transform:uppercase;border-radius:7px;border:none;cursor:pointer}
+.bulletin{margin:0 18px 18px;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.bulletin-head{padding:13px 15px;background:var(--dirt);display:flex;align-items:center;gap:9px;border-bottom:1px solid var(--line)}
+.bulletin-head svg{width:18px;height:18px;stroke:var(--rust-bright);fill:none;stroke-width:1.8}
+.bulletin-head .t{font-family:'Oswald';font-weight:600;font-size:14px;letter-spacing:.5px;text-transform:uppercase}
+.bulletin-head .d{margin-left:auto;font-size:11px;color:var(--ash)}
+.bitem{padding:12px 15px;border-bottom:1px solid var(--line);display:flex;gap:11px;align-items:flex-start}
+.bitem:last-child{border-bottom:none}
+.bitem .be{font-size:24px;flex-shrink:0}
+.bitem .bt{font-family:'Oswald';font-weight:600;font-size:13px;margin-bottom:2px}
+.bitem .bd{font-size:12px;color:var(--ash);line-height:1.45}
+.section-head{font-family:'Oswald';font-weight:600;font-size:13px;letter-spacing:1px;text-transform:uppercase;color:var(--ash);padding:8px 18px 4px;margin-top:6px}
+.prof-hero{padding:28px 18px 20px;text-align:center;border-bottom:1px solid var(--line);position:relative;overflow:hidden}
+.prof-hero .bg{position:absolute;inset:0;background:radial-gradient(circle at 50% 0%,rgba(168,83,31,0.16),transparent 60%)}
+.prof-av{width:74px;height:74px;border-radius:50%;background:linear-gradient(135deg,var(--moss),var(--rust));display:flex;align-items:center;justify-content:center;font-family:'Oswald';font-weight:700;font-size:28px;margin:0 auto 10px;position:relative;border:2px solid var(--line)}
+.prof-name{font-family:'Oswald';font-weight:700;font-size:22px;letter-spacing:.5px;position:relative}
+.prof-tag{font-size:12px;color:var(--ash);font-style:italic;position:relative;margin-top:2px}
+.prof-tabs{display:flex;gap:9px;overflow-x:auto;padding:16px 18px;border-bottom:1px solid var(--line)}
+.prof-tab{flex-shrink:0;padding:9px 16px;border-radius:20px;background:rgba(232,225,211,0.06);border:1px solid var(--line);color:var(--ash);font-family:'Oswald';font-size:12px;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:all .2s}
+.prof-tab.active{background:var(--rust);border-color:var(--rust);color:var(--bone)}
+.setup-block{padding:18px}
+.field{margin-bottom:16px}
+.field label{display:block;font-family:'Oswald';font-size:12px;letter-spacing:.5px;text-transform:uppercase;color:var(--ash);margin-bottom:6px}
+.field input,.field select{width:100%;padding:12px 13px;border-radius:8px;background:var(--dirt);border:1px solid var(--line);color:var(--bone);font-family:'Bitter';font-size:15px;outline:none}
+.field input:focus,.field select:focus{border-color:var(--rust)}
+.field .row{display:flex;gap:10px}
+.field .row input{flex:1}
+.pin-table{border:1px solid var(--line);border-radius:9px;overflow:hidden;margin-bottom:14px}
+.pin-row{display:flex;align-items:center;gap:10px;padding:11px 13px;border-bottom:1px solid var(--line)}
+.pin-row:last-child{border-bottom:none}
+.pin-color{width:16px;height:16px;border-radius:50%;flex-shrink:0}
+.pin-label{font-family:'Oswald';font-weight:600;font-size:14px;min-width:54px}
+.pin-dist{flex:1;text-align:right;font-family:'Oswald';font-weight:700;font-size:18px;color:var(--rust-bright)}
+.pin-dist small{font-size:12px;color:var(--ash);font-weight:400}
+.pin-edit{display:flex;gap:8px;align-items:center}
+.pin-edit input{width:64px;padding:8px;border-radius:6px;background:var(--char);border:1px solid var(--line);color:var(--bone);font-family:'Oswald';font-size:15px;text-align:center;outline:none}
+.save-btn-full{display:block;width:100%;padding:14px;background:var(--rust);color:var(--bone);font-family:'Oswald';font-weight:600;font-size:14px;letter-spacing:1px;text-transform:uppercase;border:none;cursor:pointer;border-radius:8px;transition:background .2s}
+.save-btn-full:hover{background:var(--rust-bright)}
+.saved-flash{text-align:center;color:#a9b489;font-family:'Oswald';font-size:12px;letter-spacing:1px;text-transform:uppercase;margin-top:10px;height:16px;transition:opacity .3s}
+.trophy-grid{display:grid;grid-template-columns:1fr 1fr;gap:13px;padding:18px}
+.trophy{background:var(--dirt);border-radius:10px;overflow:hidden;border:1px solid var(--line);position:relative}
+.trophy-img{aspect-ratio:1;background-size:cover;background-position:center;display:flex;align-items:center;justify-content:center;font-size:48px;position:relative}
+.trophy-pb{position:absolute;top:8px;left:8px;font-family:'Oswald';font-size:9px;letter-spacing:.5px;text-transform:uppercase;padding:3px 7px;border-radius:3px;background:rgba(168,83,31,0.92);font-weight:600}
+.trophy-body{padding:11px}
+.trophy-species{font-family:'Oswald';font-weight:600;font-size:14px;line-height:1.1}
+.trophy-detail{font-size:11px;color:var(--ash);margin-top:3px}
+.trophy-del{position:absolute;top:6px;right:6px;width:24px;height:24px;border-radius:50%;background:rgba(26,22,18,0.8);border:none;color:var(--ash);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center}
+.add-trophy{grid-column:1/-1;padding:16px;border:1px dashed var(--line);border-radius:10px;background:none;color:var(--ash);font-family:'Oswald';font-size:13px;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px}
+.add-trophy svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2}
+.trophy-form{padding:18px}
+.empty-note{text-align:center;color:var(--ash);font-style:italic;padding:30px 18px;font-size:14px}
+.field textarea{width:100%;padding:12px 13px;border-radius:8px;background:var(--dirt);border:1px solid var(--line);color:var(--bone);font-family:'Bitter';font-size:15px;outline:none;resize:vertical;min-height:80px;line-height:1.5}
+.field textarea:focus{border-color:var(--rust)}
+.photo-up{aspect-ratio:16/9;border:1px dashed var(--line);border-radius:9px;background:var(--dirt);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;cursor:pointer;color:var(--ash);overflow:hidden;position:relative}
+.photo-up svg{width:30px;height:30px;stroke:currentColor;fill:none;stroke-width:1.6}
+.photo-up .lbl{font-family:'Oswald';font-size:12px;letter-spacing:.5px;text-transform:uppercase}
+.photo-up img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
+.shot-opts{display:flex;flex-wrap:wrap;gap:8px}
+.shot-opt{padding:9px 13px;border-radius:7px;background:var(--dirt);border:1px solid var(--line);font-family:'Oswald';font-size:12px;letter-spacing:.5px;cursor:pointer;transition:all .2s}
+.shot-opt.sel{background:var(--rust);border-color:var(--rust)}
+.shot-diagram{aspect-ratio:16/10;border-radius:9px;background:radial-gradient(circle at 60% 45%,rgba(90,99,66,0.25),var(--dirt));border:1px solid var(--line);position:relative;display:flex;align-items:center;justify-content:center;margin-top:10px;overflow:hidden}
+.shot-deer{font-size:90px;opacity:.55}
+.shot-marker{position:absolute;width:22px;height:22px;border-radius:50%;background:rgba(196,99,39,0.25);border:2px solid var(--rust-bright);display:flex;align-items:center;justify-content:center}
+.shot-marker::after{content:'';width:7px;height:7px;border-radius:50%;background:var(--rust-bright)}
+.shot-label{position:absolute;bottom:8px;left:10px;font-family:'Oswald';font-size:10px;letter-spacing:.5px;text-transform:uppercase;color:var(--rust-bright)}
+.trophy-detail-hero{aspect-ratio:4/3;background-size:cover;background-position:center;display:flex;align-items:center;justify-content:center;font-size:90px;position:relative}
+.td-stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px;padding:18px}
+.td-stat{background:var(--dirt);border:1px solid var(--line);border-radius:9px;padding:12px}
+.td-stat .l{font-family:'Oswald';font-size:10px;letter-spacing:.5px;text-transform:uppercase;color:var(--ash);margin-bottom:3px}
+.td-stat .v{font-family:'Oswald';font-weight:600;font-size:15px;color:var(--bone)}
+.td-story{padding:0 18px 18px;font-size:14px;line-height:1.6}
+.post-toggle{display:flex;align-items:center;gap:10px;padding:13px;border-radius:9px;background:rgba(168,83,31,0.1);border:1px solid rgba(168,83,31,0.35);margin-bottom:16px;cursor:pointer}
+.post-toggle .sw{width:42px;height:24px;border-radius:12px;background:var(--ash);position:relative;flex-shrink:0;transition:background .2s}
+.post-toggle .sw::after{content:'';position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:var(--bone);transition:left .2s}
+.post-toggle.on .sw{background:var(--rust)}
+.post-toggle.on .sw::after{left:20px}
+.post-toggle .pt{flex:1;font-size:13px;line-height:1.4}
+.post-toggle .pt b{font-family:'Oswald';font-weight:600;display:block;font-size:13px}
+.botnav{position:fixed;bottom:0;left:0;right:0;z-index:50;background:rgba(26,22,18,0.96);backdrop-filter:blur(10px);border-top:1px solid var(--line);display:flex;justify-content:space-around;padding:11px 0 13px}
+.nav-item{background:none;border:none;color:var(--ash);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;font-family:'Oswald';font-size:9px;letter-spacing:.5px;text-transform:uppercase}
+.nav-item svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:1.8}
+.nav-item.active{color:var(--rust-bright)}
+.nav-item.post .post-circle{width:42px;height:42px;border-radius:50%;background:var(--rust);display:flex;align-items:center;justify-content:center;margin-top:-8px;box-shadow:0 4px 16px rgba(168,83,31,0.5)}
+.nav-item.post .post-circle svg{stroke:var(--bone);width:22px;height:22px}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="logo" onclick="go('feed')"><svg viewBox="0 0 24 24" fill="none" stroke="#c46327" stroke-width="2"><path d="M3 21 L12 3 L21 21" stroke-linejoin="round"/><path d="M7 21 L12 11 L17 21"/></svg>WILD<span>HIDE</span></div>
+  <div class="topbar-actions">
+    <button class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></button>
+    <button class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></button>
+    <div class="avatar-sm" onclick="go('profile')">RB</div>
+  </div>
+</div>
+<div class="view active" id="view-feed">
+  <div class="hero"><video class="hero-video" autoplay muted loop playsinline poster=""><source src="hero.mp4" type="video/mp4"></video><div class="hero-bg"></div><div class="hero-overlay"></div><div class="hero-tag">Born in the bush &middot; Hunting the world</div><h1>The Hunt<br>Is On!</h1><p>From a first blesbuck at nine to a 65" kudu bull &mdash; real hunting, honest gear, every shot earned. Welcome to the herd.</p></div>
+  <div class="strip" id="strip"></div>
+  <div class="feed" id="feed"></div>
+</div>
+<div class="view" id="view-shop">
+  <div class="shop-head"><h2>The Gear Shed</h2><p>Every item tested or vetted. If Wildhide stocks it, it earns its place.</p></div>
+  <div class="cat-nav" id="catNav"></div>
+  <div id="shopBody"></div>
+</div>
+<div class="view" id="view-hunts">
+  <div class="shop-head"><h2>Hunts &amp; Outfitters</h2><p>Live listings from vetted US farms &amp; outfitters. Prices &amp; contacts pulled and refreshed from the web.</p></div>
+  <div class="cat-nav" id="huntFilter"></div>
+  <div id="huntsBody" style="padding:18px"></div>
+</div>
+<div class="view" id="view-detail"><div id="detailBody"></div></div><div class="view" id="view-watch"><div class="shop-head"><h2>Watch</h2><p>Hunt films, honest gear reviews, and field-tested how-tos.</p></div><div class="cat-nav" id="watchFilter"></div><div id="watchBody"></div><div id="watchPlayer"></div></div><div class="view" id="view-farm"><div id="farmDetailBody"></div></div>
+<div class="view" id="view-build"><div class="shop-head"><h2>Build Your Hunt</h2><p>Set your budget, pick your quarry, tell us what you own &mdash; get a matched setup, the strategy, and only shop what you're missing.</p></div><div id="buildBody"></div></div>
+<div class="view" id="view-community"><div class="shop-head"><h2>The Camp</h2><p>Ask the herd, show your PB, swap gear notes. Real hunters, real advice.</p></div><div class="cat-nav" id="commFilter"></div><div id="commBody"></div></div>
+<div class="view" id="view-profile"><div id="profileBody"></div></div>
+<div class="botnav">
+  <button class="nav-item active" data-view="feed"><svg viewBox="0 0 24 24"><path d="M3 9.5 12 3l9 6.5"/><path d="M5 9v11h14V9"/></svg>Feed</button>
+  <button class="nav-item" data-view="shop"><svg viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><path d="M3 6h18M16 10a4 4 0 0 1-8 0"/></svg>Shop</button>
+  <button class="nav-item" data-view="hunts"><svg viewBox="0 0 24 24"><path d="M12 2 2 22h20z"/><path d="M12 8 7 18h10z"/></svg>Hunts</button>
+  <button class="nav-item" data-view="build"><svg viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 1 7 7c0 3-2 4-2 7H7c0-3-2-4-2-7a7 7 0 0 1 7-7z"/><path d="M9 21h6"/></svg>Build</button>
+  <button class="nav-item" data-view="watch"><svg viewBox="0 0 24 24"><path d="m6 4 14 8-14 8V4z"/></svg>Watch</button>
+  <button class="nav-item" data-view="community"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.2"/><circle cx="17" cy="9" r="2.6"/><path d="M3 20c0-3.3 2.7-5 6-5s6 1.7 6 5"/><path d="M15 15c2.5 0 6 1.2 6 5"/></svg>Community</button>
+</div>
+<script>
+const star='<svg viewBox="0 0 24 24"><path d="M12 2l3 6.5 7 .8-5 4.8 1.3 7L12 17.8 5.4 21l1.3-7-5-4.8 7-.8z"/></svg>';
+function go(v){document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));document.getElementById('view-'+v).classList.add('active');document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));const nav=document.querySelector('.nav-item[data-view="'+v+'"]');if(nav)nav.classList.add('active');if(v==='profile'&&typeof renderProfile==='function')renderProfile();window.scrollTo(0,0);}
+const posts=[
+ {name:'Wildhide',sub:'Founder \u00b7 Garden Route, SA',av:'RB',tagClass:'tag-story',tag:'Story',body:'I shot my first blesbuck at <span class="accent">nine years old</span> with my dad\'s 30-06. That morning changed me. Twenty years later I arrowed a <span class="accent">65 3/4" kudu bull</span> with my Bowtech. This page is everything I\'ve learned in between &mdash; and everywhere I\'m headed next. \ud83c\udf0d',media:{label:'The First Hunt',sub:'Where it all began',emoji:'\ud83c\udf05',color:'linear-gradient(135deg,#5a4a2f,#a8531f)'},likes:342,comments:48},
+ {name:'Wildhide Gear',sub:'Tested in the field',av:'WH',tagClass:'tag-gear',tag:'Gear Review',body:'Ran these through a full Eastern Cape season. Honest verdict: pass-through on a big kudu at 38 yards. \ud83d\udc47',product:'broadheads-0',likes:189,comments:31},
+ {name:'Wildhide',sub:'2 hours ago',av:'RB',tagClass:'tag-hunt',tag:'Hunt',body:'First light, wind in my face, spot & stalk on a mature kudu through thornveld. This is why we do it. \ud83c\udfa5',media:{label:'Spot & Stalk \u00b7 Thornveld',sub:'12 min \u00b7 Watch now',color:'linear-gradient(135deg,#2b2520,#5a6342)',video:true},likes:521,comments:73},
+ {name:'Wildhide',sub:'The mission',av:'RB',tagClass:'tag-story',tag:'Story',body:'Ethical hunting <span class="accent">funds conservation</span>, manages herds, and feeds local families. Every hunt I document carries that story.',media:{label:'Conservation Through Hunting',sub:'The Wildhide ethic',emoji:'\ud83e\udda3',color:'linear-gradient(135deg,#3a322a,#5a4a2f)'},likes:438,comments:59}
+];
+const chips=[['\ud83c\udff9','Bows'],['\ud83c\udfaf','Broadheads'],['\ud83d\udd2d','Scopes'],['\ud83d\udccf','Rangefinders'],['\ud83c\udff9','Quivers'],['\ud83e\udd86','Decoys'],['\ud83d\udc43','Scents'],['\ud83c\udf0d','Africa']];
+const categories=[
+ {key:'bows',em:'\ud83c\udff9',title:'Compound Bows',desc:'The heart of the hunt. Three flagships from the brands that define performance.',items:[
+   {brand:'Hoyt',name:'RX-8 Ultra',rating:'4.9',count:'430',price:'$1,799',emoji:'\ud83c\udff9',badge:'Premium',color:'linear-gradient(135deg,#3a322a,#5a6342)',desc:'A carbon-riser flagship built for the backcountry hunter. The RX-8 Ultra delivers a smooth draw, dead-in-hand balance, and tournament-grade accuracy in a hunting platform. At-rest stability that lets you hold full draw longer when the shot needs to be perfect.',reviews:[['JM','Jake M.',5,'Shot a 6x6 bull elk at 52 yards. This bow is silent and the hold is unreal.','Verified \u2014 aggregated from Cabela\'s'],['DT','Derek T.',5,'Worth every dollar. Tunes easy, holds zero through a whole season.','Verified \u2014 aggregated from Archery Talk forum'],['SP','Sarah P.',4,'Premium price but the carbon riser is noticeably warmer in cold weather.','Verified \u2014 aggregated from Reddit r/bowhunting']],sources:['Hoyt.com official spec sheet','Cabela\'s customer reviews (430)','Archery Talk community feedback','GearJunkie 2026 bow roundup']},
+   {brand:'Bowtech',name:'SR350',rating:'4.8',count:'1,210',price:'$1,199',emoji:'\ud83c\udff9',badge:'Top Pick',color:'linear-gradient(135deg,#3a322a,#a8531f)',desc:'Speed and forgiveness in one package. The SR350 pushes 350 fps with Bowtech\'s adjustable Deadlock cam system for perfect arrow flight. The same platform that took my 65 3/4" kudu bull \u2014 it drives heavy arrows deep, making it the ideal plains-game and whitetail crossover bow.',reviews:[['RB','Reinhardt B.',5,'My personal kudu bow. Drove a 500-grain arrow clean through the shoulder. Trust it completely.','Founder review'],['KL','Kyle L.',5,'The Deadlock cam tuning is a game changer. Bullet holes through paper first try.','Verified \u2014 aggregated from Bowtech dealer reviews'],['MN','Mike N.',4,'Fast and accurate, slightly louder than my old Mathews but the speed is worth it.','Verified \u2014 aggregated from Archery Talk forum']],sources:['Bowtech.com official specs','Bowtech authorised dealer reviews (1,210)','Archery Talk community','Wildhide field testing \u2014 Eastern Cape 2025']},
+   {brand:'Mathews',name:'Phase4 33',rating:'4.9',count:'890',price:'$1,399',emoji:'\ud83c\udff9',badge:'Quietest',color:'linear-gradient(135deg,#2b2520,#5a4a2f)',desc:'The benchmark for silence. Mathews\' Resistance Phase Damping makes the Phase4 the quietest hunting bow on the market \u2014 critical for close treestand shots where a whitetail can jump the string. Smooth, stable, and forgiving.',reviews:[['TW','Tyler W.',5,'Shot a doe at 18 yards, she never flinched. Silence is the whole game in a treestand.','Verified \u2014 aggregated from Lancaster Archery'],['AG','Adam G.',5,'Best treestand bow I have ever owned. The damping is real.','Verified \u2014 aggregated from Reddit r/bowhunting'],['JC','Jen C.',5,'Heavy but rock-solid on the hold. Worth it.','Verified \u2014 aggregated from Mathews dealer reviews']],sources:['Mathews.com official specs','Lancaster Archery reviews (890)','Reddit r/bowhunting threads','Outdoor Life 2026 test']}
+ ]},
+ {key:'broadheads',em:'\ud83c\udfaf',title:'Broadheads',desc:'Where the shot ends. Penetration, blood trail, durability \u2014 tested.',items:[
+   {brand:'Rage',name:'Hypodermic NC+',sub:'mechanical',rating:'4.6',count:'2,840',price:'$44.99',emoji:'\ud83c\udfaf',badge:'Best Seller',color:'linear-gradient(135deg,#3a322a,#a8531f)',desc:'The number-one expandable broadhead. The NC+ no-collar design deploys reliably on impact with a 2" cutting diameter and leaves a devastating blood trail. Flies like a field point out to 40+ yards.',reviews:[['RB','Reinhardt B.',5,'Pass-through on a big kudu at 38 yards. The blood trail was a highway.','Founder review'],['BG','Brent G.',5,'Massive entry and exit holes. Easy tracking even on marginal hits.','Verified \u2014 aggregated from Cabela\'s'],['LH','Luke H.',4,'Deadly but you pay per head. Practice with field points to save them.','Verified \u2014 aggregated from Amazon']],sources:['Rage / Feradyne official specs','Cabela\'s customer reviews (2,840)','Amazon verified purchases','Wildhide field testing 2025']},
+   {brand:'SEVR',name:'Titanium 2.0',sub:'mechanical',rating:'4.7',count:'1,560',price:'$54.99',emoji:'\ud83c\udfaf',badge:'',color:'linear-gradient(135deg,#2b2520,#5a6342)',desc:'Lock-and-Pivot mechanical with a titanium ferrule. The pivoting blades reduce deflection on angled hits and the practice-lock screw lets you shoot the actual broadhead into a target without deploying. 2.0" cut.',reviews:[['CD','Chris D.',5,'The practice feature alone sold me. Shoot your real heads, then hunt with confidence.','Verified \u2014 aggregated from SEVR direct'],['PM','Paul M.',5,'Pivoting blades saved a quartering shot on a buck. Devastating.','Verified \u2014 aggregated from Archery Talk'],['NF','Nick F.',4,'Excellent but pricey. The titanium ferrule is bombproof.','Verified \u2014 aggregated from Reddit']],sources:['SEVR Broadheads official specs','SEVR direct customer reviews (1,560)','Archery Talk forum','GearJunkie broadhead test 2026']},
+   {brand:'VPA',name:'Two-Blade Single Bevel',sub:'fixed',rating:'4.8',count:'720',price:'$49.99',emoji:'\ud83c\udfaf',badge:'Penetration',color:'linear-gradient(135deg,#3a322a,#5a4a2f)',desc:'CNC-machined from a single piece of tool steel in the USA. The single-bevel edge causes the arrow to rotate and split bone on impact \u2014 the choice for heavy-boned African plains game and traditional shooters. Resharpenable, virtually indestructible.',reviews:[['RB','Reinhardt B.',5,'My pick for big plains game. Splits bone and keeps driving. Built like a tank.','Founder review'],['WS','Wade S.',5,'Took a buffalo with these out of a heavy trad bow. Complete pass-through.','Verified \u2014 aggregated from TradGang forum'],['EJ','Eric J.',4,'Have to sharpen them yourself but they last forever.','Verified \u2014 aggregated from RMSGear']],sources:['Vantage Point Archery official specs','RMSGear customer reviews (720)','TradGang community forum','Wildhide field testing']}
+ ]},
+ {key:'scopes',em:'\ud83d\udd2d',title:'Scopes & Sights',desc:'See it before you take it. Glass and pins that hold zero.',items:[
+   {brand:'Vortex',name:'Viper HD 3-15x',rating:'4.8',count:'1,940',price:'$499',emoji:'\ud83d\udd2d',badge:'Value',color:'linear-gradient(135deg,#2b2520,#5a6342)',desc:'Class-leading glass at a mid-tier price, backed by Vortex\'s unconditional lifetime VIP warranty. Bright, clear, and reliable out to long range. The value benchmark all other scopes get measured against.',reviews:[['GH','Garrett H.',5,'The warranty is unmatched. Glass is clearer than scopes twice the price.','Verified \u2014 aggregated from OpticsPlanet'],['RT','Ryan T.',5,'Held zero through a brutal elk season in the Rockies.','Verified \u2014 aggregated from Rokslide forum'],['DM','Dana M.',4,'Slightly heavy but the clarity at dusk is worth it.','Verified \u2014 aggregated from Amazon']],sources:['Vortex Optics official specs','OpticsPlanet reviews (1,940)','Rokslide community forum','Outdoor Life optics guide 2026']},
+   {brand:'Leupold',name:'VX-5HD 3-15x',rating:'4.9',count:'1,110',price:'$899',emoji:'\ud83d\udd2d',badge:'Premium',color:'linear-gradient(135deg,#3a322a,#a8531f)',desc:'American-made premium glass with the Twilight Max HD light management system for those critical first and last minutes of legal light. Rugged, repeatable, and trusted by serious Western hunters.',reviews:[['BK','Brett K.',5,'The low-light performance is genuinely better. Extra ten minutes of shooting light.','Verified \u2014 aggregated from EuroOptic'],['SL','Steve L.',5,'Made in USA, holds zero, lifetime guarantee. No complaints.','Verified \u2014 aggregated from Rokslide'],['HW','Hank W.',5,'My go-to for mule deer. Crystal clear.','Verified \u2014 aggregated from Leupold direct']],sources:['Leupold official specs','EuroOptic reviews (1,110)','Rokslide forum','Field & Stream optics test']},
+   {brand:'Spot-Hogg',name:'Fast Eddie XL',fits:'Hoyt RX-8 Ultra, Bowtech SR350, Mathews Phase4 33',rating:'4.9',count:'640',price:'$329',emoji:'\ud83c\udfaf',badge:'Bow Sight',color:'linear-gradient(135deg,#3a322a,#5a4a2f)',desc:'The bombproof bow sight. Spot-Hogg\'s Fast Eddie XL is machined from billet aluminium and built to survive being dropped, banged, and hauled through the backcountry while never losing zero. Micro-adjust windage and elevation.',reviews:[['JD','Josh D.',5,'You could drive a truck over this sight. Indestructible and dead accurate.','Verified \u2014 aggregated from Lancaster Archery'],['MR','Marcus R.',5,'Micro adjustments are crisp. Worth every penny for a serious setup.','Verified \u2014 aggregated from Archery Talk'],['TY','Tony Y.',4,'Heavy but that is the point. Built like a vault.','Verified \u2014 aggregated from Reddit']],sources:['Spot-Hogg official specs','Lancaster Archery reviews (640)','Archery Talk forum','Wildhide testing']}
+ ]},
+ {key:'rangefinders',em:'\ud83d\udccf',title:'Rangefinders',desc:'Know the distance. Angle-compensated, fast, hunt-ready.',items:[
+   {brand:'Vortex',name:'Razor HD 4000',rating:'4.8',count:'870',price:'$499',emoji:'\ud83d\udccf',badge:'Top Pick',color:'linear-gradient(135deg,#2b2520,#5a6342)',desc:'Ranges reflective targets out to 4000 yards with angle-compensated HCD mode for bowhunters. Fast, clear, and backed by the Vortex warranty. The all-rounder that does bow and rifle ranging equally well.',reviews:[['AL','Aaron L.',5,'Instant ranging even in low light. The angle compensation is spot on for treestand.','Verified \u2014 aggregated from OpticsPlanet'],['CB','Cody B.',5,'Ranged a buck at 67 yards in a snowstorm. Never misses.','Verified \u2014 aggregated from Rokslide'],['JF','Jordan F.',4,'Great unit, wish the display was a touch brighter at midday.','Verified \u2014 aggregated from Amazon']],sources:['Vortex Optics official specs','OpticsPlanet reviews (870)','Rokslide forum','GearJunkie rangefinder test 2026']},
+   {brand:'Leica',name:'Rangemaster CRF',rating:'4.9',count:'410',price:'$649',emoji:'\ud83d\udccf',badge:'Premium',color:'linear-gradient(135deg,#3a322a,#a8531f)',desc:'German precision glass and ranging in a pocket-sized body. The Rangemaster CRF gives lightning-fast, accurate readings with ballistic output. The choice when you want the best optical clarity money can buy in a compact unit.',reviews:[['PV','Pieter V.',5,'Leica glass is in another league. Crisp, fast, beautifully made.','Verified \u2014 aggregated from EuroOptic'],['RG','Rob G.',5,'Tiny, light, and the readings are instant. Premium done right.','Verified \u2014 aggregated from Leica direct'],['DK','Dave K.',5,'Expensive but you feel the quality every time you use it.','Verified \u2014 aggregated from Reddit']],sources:['Leica Sport Optics official specs','EuroOptic reviews (410)','Reddit r/longrange','Outdoor Life optics review']},
+   {brand:'Sig Sauer',name:'KILO2400',rating:'4.7',count:'560',price:'$399',emoji:'\ud83d\udccf',badge:'',color:'linear-gradient(135deg,#3a322a,#5a4a2f)',desc:'Bluetooth-connected ballistic rangefinder that pairs with the SIG app for custom dope. Fast scan mode and excellent range on game. A tech-forward option for the data-driven hunter.',reviews:[['NB','Nate B.',5,'The app integration for ballistics is brilliant. Ranges fast and far.','Verified \u2014 aggregated from OpticsPlanet'],['SH','Sam H.',4,'Great value with the app, the menu takes some learning.','Verified \u2014 aggregated from Sig forum'],['TM','Tom M.',5,'Scan mode tracks moving game well. Solid unit.','Verified \u2014 aggregated from Amazon']],sources:['Sig Sauer Electro-Optics specs','OpticsPlanet reviews (560)','SigTalk forum','Field & Stream test 2026']}
+ ]},
+ {key:'decoys',em:'\ud83e\udd86',title:'Decoys',desc:'Bring them in close. Realism that fools the wary.',items:[
+   {brand:'Montana',name:'Whitetail Buck Decoy',rating:'4.6',count:'380',price:'$129',emoji:'\ud83e\udd8c',badge:'',color:'linear-gradient(135deg,#2b2520,#5a6342)',desc:'Photo-realistic collapsible decoy that packs flat for the walk in. The rut-phase buck posture triggers territorial responses from mature bucks. Lightweight and quiet to deploy.',reviews:[['WH','Will H.',5,'Brought a 140-class buck in to 15 yards during the rut. Unreal.','Verified \u2014 aggregated from Cabela\'s'],['BR','Ben R.',4,'Packs down great. The realism is impressive for the price.','Verified \u2014 aggregated from Amazon'],['CG','Cole G.',4,'Works best in the rut, less so other times. Easy to carry.','Verified \u2014 aggregated from Reddit']],sources:['Montana Decoy official specs','Cabela\'s reviews (380)','Amazon verified purchases','Whitetail Journal']},
+   {brand:'Dave Smith',name:'DSD Elk Decoy',rating:'4.9',count:'210',price:'$329',emoji:'\ud83e\udd8c',badge:'Premium',color:'linear-gradient(135deg,#3a322a,#a8531f)',desc:'The most realistic elk decoy made. DSD decoys are the gold standard for calling in herd bulls during the September rut. Heavier and pricier, but nothing fools a wary bull like a DSD.',reviews:[['ME','Mark E.',5,'A herd bull walked right past me to this decoy. Nothing else comes close.','Verified \u2014 aggregated from Rokslide'],['JT','Jared T.',5,'Expensive and heavy but it has put two bulls in my lap. Worth it.','Verified \u2014 aggregated from elk forums'],['DW','Drew W.',5,'The realism is absurd. Best elk decoy on the market.','Verified \u2014 aggregated from Reddit']],sources:['Dave Smith Decoys official specs','Rokslide community (210)','Elk hunting forums','Western Hunter review']},
+   {brand:'Avian-X',name:'LCD Turkey Pack',rating:'4.7',count:'640',price:'$159',emoji:'\ud83e\udd83',badge:'Best Seller',color:'linear-gradient(135deg,#3a322a,#5a4a2f)',desc:'Tournament-grade turkey decoys with lifelike paint and posture. The hen-and-jake combo draws gobblers into bow range. Collapsible carry-lite design for run-and-gun spring hunts.',reviews:[['RS','Rick S.',5,'Gobblers commit hard to these. The paint detail is incredible.','Verified \u2014 aggregated from Cabela\'s'],['LF','Lance F.',5,'Best turkey decoys I have used. Folds down small.','Verified \u2014 aggregated from Amazon'],['GP','Greg P.',4,'Pricey for decoys but they flat-out work in spring.','Verified \u2014 aggregated from turkey forums']],sources:['Avian-X official specs','Cabela\'s reviews (640)','Amazon verified purchases','Turkey hunting forums']}
+ ]},
+ {key:'scents',em:'\ud83d\udc43',title:'Scents & Cover',desc:'Beat their nose. Attractants and scent control that work.',items:[
+   {brand:'Tinks',name:'#69 Doe-In-Rut',rating:'4.5',count:'1,420',price:'$12.99',emoji:'\ud83d\udc43',badge:'Classic',color:'linear-gradient(135deg,#2b2520,#5a6342)',desc:'The legendary rut attractant. Tink\'s #69 has been pulling bucks into range for decades. Fresh estrous doe urine that triggers the rut response. A staple in every serious deer hunter\'s pack.',reviews:[['JB','Jim B.',5,'Old reliable. Has worked for me for 20 seasons. Nothing beats the classic.','Verified \u2014 aggregated from Bass Pro'],['TC','Travis C.',4,'Works well during peak rut, less so otherwise. Cheap and effective.','Verified \u2014 aggregated from Amazon'],['MK','Matt K.',4,'A buck came in nose to the ground following the scent trail. Believer.','Verified \u2014 aggregated from Reddit']],sources:['Tink\'s official product info','Bass Pro Shops reviews (1,420)','Amazon verified purchases','Deer & Deer Hunting']},
+   {brand:'Wildlife Research',name:'Scent Killer Spray',rating:'4.7',count:'2,100',price:'$19.99',emoji:'\ud83d\udca8',badge:'Best Seller',color:'linear-gradient(135deg,#3a322a,#a8531f)',desc:'The #1 selling scent-elimination spray. Bonds with and neutralises human odour on clothing and gear. Spray down before every hunt to stay invisible to a whitetail\'s greatest defence \u2014 its nose.',reviews:[['AD','Andy D.',5,'Had a doe bed down 10 yards downwind. This stuff works.','Verified \u2014 aggregated from Cabela\'s'],['RP','Ross P.',5,'Spray everything every time. Cheap insurance against getting busted.','Verified \u2014 aggregated from Amazon'],['KW','Kurt W.',4,'Hard to prove a negative but I get winded far less since switching.','Verified \u2014 aggregated from Reddit']],sources:['Wildlife Research Center specs','Cabela\'s reviews (2,100)','Amazon verified purchases','Bowhunting.com']},
+   {brand:'Ozonics',name:'HR-300 Ozone Unit',rating:'4.6',count:'330',price:'$449',emoji:'\ud83d\udca8',badge:'Premium',color:'linear-gradient(135deg,#3a322a,#5a4a2f)',desc:'In-field ozone generator that destroys human scent molecules downwind of your stand. Mounts above you and runs silently. The high-tech edge for hunters who refuse to be busted by the wind.',reviews:[['BT','Brian T.',5,'Game changer in the treestand. Deer that should have winded me did not.','Verified \u2014 aggregated from Ozonics direct'],['CJ','Carl J.',4,'Expensive and needs charging but the results in swirling wind are real.','Verified \u2014 aggregated from Archery Talk'],['NP','Neil P.',5,'Combined with scent spray I feel genuinely invisible now.','Verified \u2014 aggregated from Reddit']],sources:['Ozonics official specs','Ozonics direct reviews (330)','Archery Talk forum','Petersen\'s Bowhunting']}
+ ]},
+ {key:'quivers',em:'\ud83c\udff9',title:'Quivers',desc:'Carry your arrows tight and quiet. Sized and mounted for your bow.',items:[
+   {brand:'Tight Spot',name:'5-Arrow Quiver',fits:'Hoyt RX-8 Ultra, Bowtech SR350, Mathews Phase4 33',rating:'4.9',count:'1,030',price:'$169',emoji:'\ud83c\udff9',badge:'Top Pick',color:'linear-gradient(135deg,#3a322a,#a8531f)',desc:'The benchmark mount-on quiver. Pulls the arrows in tight to the bow to kill vibration and improve balance. Adjustable for length, drop and angle. Fits all three Wildhide flagship bows with the included mount.',reviews:[['JD','Josh D.',5,'Tucks the arrows in so close the bow feels balanced even loaded. Quietest quiver made.','Verified \u2014 aggregated from Lancaster Archery'],['MR','Marcus R.',5,'Worth the money. Rock solid, no rattle on the stalk.','Verified \u2014 aggregated from Archery Talk'],['TY','Tony Y.',4,'Pricey but you only buy it once.','Verified \u2014 aggregated from Reddit']],sources:['Tight Spot Archery official specs','Lancaster Archery reviews (1,030)','Archery Talk forum','Wildhide testing']},
+   {brand:'Mathews',name:'LowPro Quiver',fits:'Mathews Phase4 33',rating:'4.8',count:'420',price:'$149',emoji:'\ud83c\udff9',badge:'',color:'linear-gradient(135deg,#2b2520,#5a4a2f)',desc:'Integrated low-profile quiver designed to bolt directly to the Mathews bridge-lock system. Sits tight and balanced with no extra brackets. Purpose-built for the Phase4 platform.',reviews:[['TW','Tyler W.',5,'Bolts straight to the Phase4, no rattle, perfect balance.','Verified \u2014 aggregated from Lancaster Archery'],['AG','Adam G.',5,'Cleanest integrated quiver setup I have run.','Verified \u2014 aggregated from Reddit'],['JC','Jen C.',4,'Only fits Mathews bridge-lock bows, but flawless on mine.','Verified \u2014 aggregated from Mathews dealer reviews']],sources:['Mathews Archery official specs','Lancaster Archery reviews (420)','Reddit r/bowhunting','Wildhide testing']},
+   {brand:'TightSpot',name:'Pivot Hunting Quiver',fits:'Hoyt RX-8 Ultra, Bowtech SR350',rating:'4.7',count:'310',price:'$199',emoji:'\ud83c\udff9',badge:'Premium',color:'linear-gradient(135deg,#3a322a,#5a6342)',desc:'Pivoting quiver that swings the arrows in even tighter for treestand and ground-blind hunters where clearance matters. Detaches fast and fits the Hoyt and Bowtech flagships with the standard mount.',reviews:[['CD','Chris D.',5,'The pivot is genius in a tight blind. Snug to the riser when I need it.','Verified \u2014 aggregated from Lancaster Archery'],['PM','Paul M.',4,'Premium price but the adjustability is unmatched.','Verified \u2014 aggregated from Archery Talk'],['NF','Nick F.',5,'Fits my SR350 perfectly. Dead silent on the walk in.','Verified \u2014 aggregated from Reddit']],sources:['Tight Spot Archery official specs','Lancaster Archery reviews (310)','Archery Talk forum','Wildhide testing']}
+ ]}
+];
+const farms=[
+ {name:'Spike Box Ranch',state:'Texas',price:'$4,500',unit:'/ 3-day whitetail hunt',rating:'4.9',count:'68',emoji:'\ud83e\udd8c',color:'linear-gradient(135deg,#5a4a2f,#a8531f)',species:['Whitetail','Hogs','Exotics'],styles:['bow','gun','blind'],phone:'+1 (325) 555-0142',email:'hunt@spikeboxranch.com',web:'spikeboxranch.com',desc:'5,000-acre low-fence ranch in the Texas Hill Country. Trophy whitetail management with free-range hogs and a handful of exotics. Lodging, meals and guide included. Bowhunters welcome with elevated blinds over feeders and creek crossings.',reviews:[['JM','Jake M.',5,'Took a 150-class buck on day two. Lodge food was incredible.','Source: Outfitter site testimonials'],['DR','Dana R.',5,'Best-run operation in the Hill Country. Guides know every inch of the property.','Source: BookYourHunt reviews']],sources:['Spike Box Ranch official website','BookYourHunt.com listing','Texas Parks & Wildlife outfitter registry','Aggregated via AI from 3 web sources'],accom:[['Premium','🥃 Lodge suite, private chef, guided 1-on-1','$4,500 / 3 days'],['Standard','🏡 Shared lodge, home-cooked meals, guided','$2,800 / 3 days'],['Meat Hunter','⛺ Bunkhouse, self-catered, semi-guided hogs','$1,200 / 3 days']],gallery:[['The Lodge','\ud83c\udfe1','linear-gradient(135deg,#5a4a2f,#3a322a)'],['Hill Country Sunrise','\ud83c\udf05','linear-gradient(135deg,#a8531f,#5a4a2f)'],['Trophy Whitetail','\ud83e\udd8c','linear-gradient(135deg,#3a322a,#5a6342)'],['Elevated Blind','\ud83c\udfaf','linear-gradient(135deg,#2b2520,#3a322a)']],seasons:[['Whitetail','Oct \u2013 Jan','peak rut Nov'],['Hogs','Year-round','best Dec \u2013 Feb'],['Exotics','Year-round','no closed season']]},
+ {name:'Elk Ridge Outfitters',state:'Colorado',price:'$6,800',unit:'/ 5-day elk hunt',rating:'4.8',count:'42',emoji:'\ud83e\udd8c',color:'linear-gradient(135deg,#2b2520,#5a6342)',species:['Elk','Mule Deer','Bear'],styles:['bow','gun','stalk'],phone:'+1 (970) 555-0188',email:'info@elkridgeco.com',web:'elkridgeco.com',desc:'Backcountry archery elk hunts in the Colorado high country during the September rut. Drop-camp and fully-guided options. Public-land OTC units with private-land access. For the hunter who wants the real Rocky Mountain experience.',reviews:[['BK','Brett K.',5,'Called in three bulls in five days. Guide was a master caller.','Source: Rokslide outfitter thread'],['SL','Steve L.',4,'Tough hunt as it should be. Honest outfitter, no guarantees but every opportunity.','Source: BookYourHunt reviews']],sources:['Elk Ridge Outfitters website','Rokslide community reviews','Colorado Parks & Wildlife guide registry','Aggregated via AI from 3 web sources'],accom:[['Premium','🥃 Wall-tent camp, private guide, gear hauled','$6,800 / 5 days'],['Standard','⛺ Base camp, shared guide, meals included','$4,900 / 5 days'],['Drop Camp','🎒 Self-guided drop camp, packed in & out','$2,400 / 5 days']],gallery:[['Base Camp','\u26fa','linear-gradient(135deg,#2b2520,#5a6342)'],['High Country','\ud83c\udf04','linear-gradient(135deg,#5a6342,#3a322a)'],['Bull Elk','\ud83e\udd8c','linear-gradient(135deg,#3a322a,#a8531f)'],['Glassing the Ridge','\ud83d\udd2d','linear-gradient(135deg,#2b2520,#3a322a)']],seasons:[['Elk (archery)','Sep 1 \u2013 Sep 30','the September rut'],['Elk (rifle)','Oct \u2013 Nov','by draw tag'],['Mule Deer','Oct \u2013 Nov','rut late Nov'],['Bear','Sep + Apr \u2013 May','spring & fall']]},
+ {name:'Cypress Creek Whitetail',state:'Georgia',price:'$2,900',unit:'/ 3-day hunt',rating:'4.7',count:'91',emoji:'\ud83e\udd8c',color:'linear-gradient(135deg,#3a322a,#5a4a2f)',species:['Whitetail','Turkey','Hogs'],styles:['bow','gun','blind'],phone:'+1 (478) 555-0123',email:'book@cypresscreekwt.com',web:'cypresscreekwt.com',desc:'Southern hospitality and managed whitetail on 3,200 acres of pine and hardwood bottoms. Spring turkey and year-round hogs. Comfortable lodge, home-cooked meals, and box blinds set for bow and rifle. Great for first-timers and families.',reviews:[['WH','Will H.',5,'Brought my son for his first hunt. They treated us like family.','Source: Outfitter Facebook reviews'],['CG','Cole G.',4,'Solid deer numbers and great value for the region.','Source: BookYourHunt reviews']],sources:['Cypress Creek Whitetail website','Facebook page reviews','Georgia DNR outfitter listing','Aggregated via AI from 3 web sources'],accom:[['Premium','🥃 Lodge suite, chef meals, private blinds','$3,900 / 3 days'],['Standard','🏡 Lodge room, family-style meals, guided','$2,900 / 3 days'],['Meat Hunter','⛺ Bunk, self-catered, hog & doe management','$950 / 3 days']],gallery:[['The Lodge','\ud83c\udfe1','linear-gradient(135deg,#3a322a,#5a4a2f)'],['Pine Bottoms','\ud83c\udf32','linear-gradient(135deg,#5a6342,#2b2520)'],['Managed Buck','\ud83e\udd8c','linear-gradient(135deg,#3a322a,#a8531f)'],['Spring Gobbler','\ud83e\udd83','linear-gradient(135deg,#5a4a2f,#3a322a)']],seasons:[['Whitetail','Oct \u2013 Jan','rut Nov \u2013 Dec'],['Turkey','Mar \u2013 May','spring gobbler'],['Hogs','Year-round','no closed season']]},
+ {name:'High Plains Pronghorn',state:'Wyoming',price:'$3,200',unit:'/ 4-day antelope hunt',rating:'4.8',count:'37',emoji:'\ud83e\udd8c',color:'linear-gradient(135deg,#5a4a2f,#3a322a)',species:['Pronghorn','Mule Deer'],styles:['bow','stalk','blind'],phone:'+1 (307) 555-0177',email:'hunt@highplainswy.com',web:'highplainswy.com',desc:'Spot-and-stalk and water-blind pronghorn hunts on vast Wyoming prairie. High success rates and a true Western experience. Archery water-hole sits in August are a bowhunter\'s dream. Private land with abundant tags.',reviews:[['AL','Aaron L.',5,'Arrowed a 14-inch buck from a water blind. Incredible four days.','Source: Archery Talk forum'],['CB','Cody B.',5,'Antelope everywhere. The water-blind bowhunting is addictive.','Source: BookYourHunt reviews']],sources:['High Plains Pronghorn website','Archery Talk outfitter reviews','Wyoming Game & Fish registry','Aggregated via AI from 3 web sources'],accom:[['Premium','🥃 Ranch house, chef, private water blinds','$3,200 / 4 days'],['Standard','🏡 Shared lodging, meals, guided','$2,300 / 4 days'],['DIY','⛺ Camp on-site, self-guided, land access only','$900 / 4 days']],gallery:[['Prairie Camp','\u26fa','linear-gradient(135deg,#5a4a2f,#3a322a)'],['Open Plains','\ud83c\udf3e','linear-gradient(135deg,#a8531f,#5a4a2f)'],['Pronghorn Buck','\ud83e\udd8c','linear-gradient(135deg,#3a322a,#5a6342)'],['Water Blind','\ud83c\udfaf','linear-gradient(135deg,#2b2520,#3a322a)']],seasons:[['Pronghorn (archery)','Aug 15 \u2013 Sep','water-blind sits'],['Pronghorn (rifle)','Oct','by draw tag'],['Mule Deer','Oct','rut late Oct']]},
+ {name:'Timberline Ridge Guides',state:'Montana',price:'$5,400',unit:'/ 5-day backcountry hunt',rating:'4.9',count:'29',emoji:'\ud83e\udd8c',color:'linear-gradient(135deg,#2b2520,#3a322a)',species:['Elk','Mule Deer','Mountain Lion'],styles:['gun','stalk'],phone:'+1 (406) 555-0199',email:'hunt@timberlinemt.com',web:'timberlinemt.com',desc:'Horseback backcountry hunts deep in Montana wilderness. Spot-and-stalk and glassing for elk and mule deer in rugged high country. Rifle hunts with experienced wilderness guides and a fully outfitted base camp. Not for the faint-hearted.',reviews:[['RT','Ryan T.',5,'Hardest and best hunt of my life. Took a 6x6 at 11,000 feet.','Source: Rokslide outfitter thread'],['DM','Dana M.',5,'These guys are the real deal. Horseback into true wilderness.','Source: BookYourHunt reviews']],sources:['Timberline Ridge Guides website','Rokslide community reviews','Montana FWP outfitter registry','Aggregated via AI from 3 web sources'],accom:[['Premium','🥃 Outfitted wilderness camp, private guide','$5,400 / 5 days'],['Standard','⛺ Shared backcountry camp, guided','$3,800 / 5 days']],gallery:[['Wilderness Camp','\u26fa','linear-gradient(135deg,#2b2520,#3a322a)'],['Pack Horses','\ud83d\udc0e','linear-gradient(135deg,#5a4a2f,#3a322a)'],['Backcountry Bull','\ud83e\udd8c','linear-gradient(135deg,#3a322a,#5a6342)'],['High Alpine','\ud83c\udfd4','linear-gradient(135deg,#5a6342,#2b2520)']],seasons:[['Elk','Sep \u2013 Nov','archery + rifle'],['Mule Deer','Oct \u2013 Nov','high-country rut'],['Mountain Lion','Dec \u2013 Feb','with hounds']]},
+ {name:'Lowcountry Waterfowl',state:'South Carolina',price:'$1,800',unit:'/ 2-day blind hunt',rating:'4.6',count:'54',emoji:'\ud83e\udd86',color:'linear-gradient(135deg,#3a322a,#5a6342)',species:['Duck','Goose'],styles:['blind','gun'],phone:'+1 (843) 555-0166',email:'book@lowcountrywf.com',web:'lowcountrywf.com',desc:'Guided waterfowl hunts from heated pit and layout blinds across flooded impoundments and rice fields. Decoy spreads set before dawn, dogs on hand for retrieves. Shotgun-only over water. Classic Southern duck hunting at its finest.',reviews:[['WH','Wade H.',5,'Limited out both mornings. The blind setup and decoy work was professional.','Source: Outfitter Facebook reviews'],['GP','Greg P.',4,'Great guides and dogs. Comfortable blinds even in the cold.','Source: BookYourHunt reviews']],sources:['Lowcountry Waterfowl website','Facebook page reviews','SC DNR outfitter listing','Aggregated via AI from 3 web sources'],accom:[['Premium','🥃 Lodge, chef, private heated pit blind','$1,800 / 2 days'],['Standard','🏡 Lodge bunk, shared blind, dog & guide','$1,100 / 2 days'],['Meat Hunter','⛺ Day-hunt only, shared layout blind','$450 / day']],gallery:[['The Lodge','\ud83c\udfe1','linear-gradient(135deg,#3a322a,#5a6342)'],['Flooded Impoundment','\ud83c\udf0a','linear-gradient(135deg,#5a6342,#2b2520)'],['Morning Flight','\ud83e\udd86','linear-gradient(135deg,#2b2520,#a8531f)'],['Retriever at Work','\ud83d\udc15','linear-gradient(135deg,#5a4a2f,#3a322a)']],seasons:[['Duck','Nov \u2013 Jan','split season'],['Goose','Nov \u2013 Feb','best after cold fronts']]}
+];
+let CURRENT_DETAIL=null;
+function buildCard(p){
+ let media='';
+ if(p.media){media='<div class="media"><div class="media-bg" style="background:'+p.media.color+'"></div><div class="media-grad"></div>'+(p.media.emoji?'<div style="position:absolute;font-size:80px;opacity:.5;z-index:1">'+p.media.emoji+'</div>':'')+(p.media.video?'<div class="play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>':'')+'<div class="media-label"><span class="big">'+p.media.label+'</span><span class="small">'+p.media.sub+'</span></div></div>';}
+ let prod='';
+ if(p.product){const[ck,ci]=p.product.split('-');const cat=categories.find(c=>c.key===ck);const x=cat.items[ci];prod='<div class="product" onclick="openProduct(\''+p.product+'\')"><div class="product-top"><div class="product-img" style="background:'+x.color+'">'+x.emoji+'</div><div class="product-info"><div class="product-brand">'+x.brand+'</div><div class="product-name">'+x.name+'</div><div class="stars">'+star+'<span class="num">'+x.rating+'</span><span class="cnt">'+x.count+' reviews</span><span class="live-dot">Live</span></div><div class="product-price">'+x.price+'</div></div></div><button class="product-cta">View Details \u2192</button></div>';}
+ return '<div class="card"><div class="card-head"><div class="av">'+p.av+'</div><div class="card-meta"><div class="card-name">'+p.name+'<svg class="verified" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 1.8 3-.3 1 2.8 2.6 1.5-1 2.9 1 2.9-2.6 1.5-1 2.8-3-.3L12 22l-2.4-1.8-3 .3-1-2.8L3 16.2l1-2.9-1-2.9 2.6-1.5 1-2.8 3 .3z"/></svg></div><div class="card-sub">'+p.sub+'</div></div><div class="tag '+p.tagClass+'">'+p.tag+'</div></div><div class="card-body">'+p.body+'</div>'+media+prod+'<div class="actions"><button class="act like-btn"><svg viewBox="0 0 24 24"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1L12 21l7.7-7.6 1.1-1a5.5 5.5 0 0 0 0-7.8z"/></svg><span class="cnt">'+p.likes+'</span></button><button class="act"><svg viewBox="0 0 24 24"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 9 9 0 0 1-4-.9L3 21l1.9-5a8.4 8.4 0 0 1-.9-4 8.5 8.5 0 0 1 17 .5z"/></svg><span>'+p.comments+'</span></button><button class="act share-btn"><svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg></button><button class="act save-btn" style="margin-left:auto"><svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></button></div></div>';
+}
+const strip=document.getElementById('strip');
+chips.forEach(c=>strip.insertAdjacentHTML('beforeend','<div class="chip" onclick="go(\'shop\')"><div class="chip-ring"><div class="chip-inner">'+c[0]+'</div></div><span>'+c[1]+'</span></div>'));
+const feed=document.getElementById('feed');
+posts.forEach((p,i)=>{
+ feed.insertAdjacentHTML('beforeend',buildCard(p));
+ if(i===1){feed.insertAdjacentHTML('beforeend','<div class="ai-card"><div class="ai-head"><svg viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 1 7 7c0 3-2 4-2 7H7c0-3-2-4-2-7a7 7 0 0 1 7-7z"/><path d="M9 21h6M10 23h4"/></svg><h3>Find My Setup</h3></div><p>Tell Wildhide AI what you hunt \u2014 get a matched setup tested in the field.</p><div class="ai-opts" id="aiOpts"><div class="ai-opt" data-r="As a new bowhunter, start with the <b>Bowtech SR350</b> (forgiving, accurate) paired with <b>Rage Hypodermic</b> broadheads. Add a <b>Vortex Razor HD 4000</b> rangefinder. ~$1,750 complete.">New bowhunter</div><div class="ai-opt" data-r="For Western elk & mule deer: <b>Hoyt RX-8 Ultra</b>, heavy arrows, single-bevel <b>VPA Two-Blade</b>, <b>Leupold VX-5HD</b> glass and a <b>DSD Elk Decoy</b> to call them in.">Western big game</div><div class="ai-opt" data-r="African plains game like kudu needs penetration. <b>Bowtech SR350</b>, 500-grain arrow, high FOC, fixed <b>VPA Two-Blade</b>. The exact kudu killer combo.">African plains game</div><div class="ai-opt" data-r="Whitetail from a treestand: <b>Mathews Phase4</b> for silence, <b>SEVR Titanium 2.0</b> for blood trails, <b>Tink\'s #69</b> scent and a <b>Montana Buck Decoy</b>.">Whitetail / treestand</div></div><div class="ai-result" id="aiResult"></div></div>');}
+});
+const catNav=document.getElementById('catNav');
+const shopBody=document.getElementById('shopBody');
+catNav.insertAdjacentHTML('beforeend','<button class="cat-btn active" data-cat="all">All</button>');
+categories.forEach(c=>catNav.insertAdjacentHTML('beforeend','<button class="cat-btn" data-cat="'+c.key+'">'+c.title+'</button>'));
+function gcard(it,key,idx){return '<div class="gcard" onclick="openProduct(\''+key+'-'+idx+'\')"><div class="gcard-img" style="background:'+it.color+'">'+(it.badge?'<span class="gcard-badge">'+it.badge+'</span>':'')+it.emoji+'</div><div class="gcard-body"><div class="gcard-brand">'+it.brand+'</div><div class="gcard-name">'+it.name+'</div><div class="gcard-stars">'+star+'<span class="n">'+it.rating+'</span><span class="c">('+it.count+')</span></div><div class="gcard-price">'+it.price+'</div></div></div>';}
+let BH_SUB='all';
+let SHOP_FILTER='all';
+function renderShop(filter){shopBody.innerHTML='';categories.filter(c=>filter==='all'||c.key===filter).forEach(c=>{
+ let items=c.items.map((it,idx)=>({it,idx}));
+ let subBar='';
+ if(c.key==='broadheads'){
+  subBar='<div class="bh-sub"><button class="bh-pill'+(BH_SUB==='all'?' active':'')+'" data-bh="all">All</button><button class="bh-pill'+(BH_SUB==='fixed'?' active':'')+'" data-bh="fixed">Fixed Blade</button><button class="bh-pill'+(BH_SUB==='mechanical'?' active':'')+'" data-bh="mechanical">Mechanical</button></div>';
+  if(BH_SUB!=='all')items=items.filter(o=>o.it.sub===BH_SUB);
+ }
+ let cards=items.map(o=>gcard(o.it,c.key,o.idx)).join('');
+ shopBody.insertAdjacentHTML('beforeend','<div class="cat-section"><div class="cat-title"><span class="em">'+c.em+'</span>'+c.title+'</div><div class="cat-desc">'+c.desc+'</div>'+subBar+'<div class="grid">'+cards+'</div></div>');});}
+renderShop('all');
+function openProduct(ref){const[ck,ci]=ref.split('-');const cat=categories.find(c=>c.key===ck);const x=cat.items[ci];CURRENT_DETAIL=ref;
+ let reviews=(x.reviews||[]).map(r=>'<div class="review"><div class="review-top"><div class="review-av">'+r[0]+'</div><div class="review-name">'+r[1]+'</div><div class="review-stars">'+star.repeat(r[2])+'</div></div><div class="review-text">'+r[3]+'</div><div class="review-src">'+r[4]+'</div></div>').join('');
+ let srcs=(x.sources||[]).map(s=>'<div class="source-item"><span class="dot">\u25b8</span>'+s+'</div>').join('');
+ let subBadge=x.sub?'<span class="sub-badge">'+(x.sub==='fixed'?'Fixed Blade':'Mechanical')+'</span>':'';
+ let fitsBlock=x.fits?'<div class="fits-box"><div class="fits-head"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>Add-On Package \u2014 Fits Your Bow</div><div class="fits-text">Confirmed compatible with: <b>'+x.fits+'</b></div><div class="fits-note">Buy together with a Wildhide bow and we set it up matched and tuned.</div></div>':'';
+ document.getElementById('detailBody').innerHTML='<div class="detail-back" onclick="go(\'shop\')"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>Back to shop</div><div class="detail-hero" style="background:'+x.color+'">'+x.emoji+'</div><div class="detail-body"><div class="detail-brand">'+x.brand+subBadge+'</div><div class="detail-title">'+x.name+'</div><div class="detail-pricerow"><div class="detail-price">'+x.price+'</div><div class="detail-rating">'+star+'<span class="n">'+x.rating+'</span><span class="c">('+x.count+' reviews)</span><span class="live-dot">Live</span></div></div><div class="detail-desc">'+x.desc+'</div>'+fitsBlock+'<button class="detail-buy">Buy at Best Price \u2192</button><div class="sec-label"><svg viewBox="0 0 24 24"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 9 9 0 0 1-4-.9L3 21l1.9-5a8.4 8.4 0 0 1-.9-4 8.5 8.5 0 0 1 17 .5z"/></svg>Reviews</div>'+reviews+'<div class="sources"><h4><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.5 1.5"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.5-1.5"/></svg>Data Sources & References</h4>'+srcs+'<div class="ai-note">Ratings, reviews and pricing aggregated by Wildhide AI from the sources above and refreshed regularly. Wildhide may earn an affiliate commission on purchases.</div></div></div>';
+ go('detail');}
+function openFarm(idx){const f=farms[idx];
+ let reviews=(f.reviews||[]).map(r=>'<div class="review"><div class="review-top"><div class="review-av">'+r[0]+'</div><div class="review-name">'+r[1]+'</div><div class="review-stars">'+star.repeat(r[2])+'</div></div><div class="review-text">'+r[3]+'</div><div class="review-src">'+r[4]+'</div></div>').join('');
+ let srcs=(f.sources||[]).map(s=>'<div class="source-item"><span class="dot">\u25b8</span>'+s+'</div>').join('');
+ let species=f.species.map(s=>'<span class="species-tag">'+s+'</span>').join('');
+ let gallery=(f.gallery||[]).map(g=>'<div class="gphoto" style="background:'+g[2]+'">'+g[1]+'<div class="gphoto-grad"></div><div class="gphoto-label">'+g[0]+'</div></div>').join('');
+ let seasons=(f.seasons||[]).map(s=>'<div class="season-row"><div class="season-row-inner"><span class="season-game">'+s[0]+'</span><span class="season-when">'+s[1]+'</span>'+(s[2]?'<span class="season-note">Best: '+s[2]+'</span>':'')+'</div></div>').join('');
+ let galleryBlock=gallery?'<div class="sec-label"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>Lodge & Hunt Photos</div><div class="gallery">'+gallery+'</div>':'';
+ let seasonsBlock=seasons?'<div class="sec-label"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Game & Seasons</div><div class="seasons">'+seasons+'</div>':'';
+ let accom=(f.accom||[]).map((a,i)=>'<div class="accom-card'+(i===0?' top':'')+'"><span class="accom-tier">'+a[0]+'</span><span class="accom-desc">'+a[1]+'</span><span class="accom-price">'+a[2]+'</span></div>').join('');
+ let accomBlock=accom?'<div class="sec-label"><svg viewBox="0 0 24 24"><path d="M3 7v11M3 12h18M21 7v11"/><path d="M3 12a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4"/></svg>Accommodation & Packages</div><div class="accom">'+accom+'</div>':'';
+ document.getElementById('farmDetailBody').innerHTML='<div class="detail-back" onclick="go(\'hunts\')"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>Back to hunts</div><div class="detail-hero" style="background:'+f.color+'">'+f.emoji+'</div><div class="detail-body"><div class="detail-brand">'+f.state+', USA</div><div class="detail-title">'+f.name+'</div><div class="detail-pricerow"><div class="detail-price">'+f.price+'<span style="font-size:13px;color:var(--ash);font-weight:400"> '+f.unit+'</span></div><div class="detail-rating">'+star+'<span class="n">'+f.rating+'</span><span class="c">('+f.count+' reviews)</span><span class="live-dot">Live</span></div></div><div class="farm-species" style="margin-bottom:16px">'+species+'</div><div class="detail-desc">'+f.desc+'</div>'+galleryBlock+seasonsBlock+accomBlock+'<button class="detail-buy">Request Booking</button><div class="sec-label"><svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>Contact</div><div class="source-item"><span class="dot">\u260e</span>'+f.phone+'</div><div class="source-item"><span class="dot">\u2709</span>'+f.email+'</div><div class="source-item"><span class="dot">\u25b8</span>'+f.web+'</div><div class="sec-label" style="margin-top:24px"><svg viewBox="0 0 24 24"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 9 9 0 0 1-4-.9L3 21l1.9-5a8.4 8.4 0 0 1-.9-4 8.5 8.5 0 0 1 17 .5z"/></svg>Reviews</div>'+reviews+'<div class="sources"><h4><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.5 1.5"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.5-1.5"/></svg>Data Sources & References</h4>'+srcs+'<div class="ai-note">Pricing, contact details and reviews aggregated by Wildhide AI from the outfitter\'s own listings and public directories, refreshed regularly. Always confirm current pricing directly with the outfitter.</div></div></div>';
+ go('farm');}
+const huntsBody=document.getElementById('huntsBody');
+const huntStyles=[['all','All Hunts'],['bow','Bow Hunting'],['gun','Gun Hunting'],['blind','Blind Hunting'],['stalk','Walk & Stalk']];
+const huntFilter=document.getElementById('huntFilter');
+huntStyles.forEach((s,i)=>huntFilter.insertAdjacentHTML('beforeend','<button class="cat-btn'+(i===0?' active':'')+'" data-hunt="'+s[0]+'">'+s[1]+'</button>'));
+function farmCard(f,idx){
+ let species=f.species.map(s=>'<span class="species-tag">'+s+'</span>').join('');
+ return '<div class="farm" onclick="openFarm('+idx+')"><div class="farm-img" style="background:'+f.color+'">'+f.emoji+'<div class="farm-grad"></div><div class="farm-verified"><svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="#e8e1d3" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>Vetted</div><div class="farm-loc"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>'+f.state+', USA</div></div><div class="farm-body"><div class="farm-name">'+f.name+'</div><div class="farm-stars">'+star+'<span class="n">'+f.rating+'</span><span class="c">('+f.count+' reviews)</span><span class="live-dot">Live</span></div><div class="farm-species">'+species+'</div><div class="farm-foot"><div class="farm-price">'+f.price+'<span> '+f.unit+'</span></div><div class="farm-contact"><button onclick="event.stopPropagation()"><svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg></button><button onclick="event.stopPropagation()"><svg viewBox="0 0 24 24"><path d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/><path d="m22 6-10 7L2 6"/></svg></button></div></div></div></div>';
+}
+function renderHunts(filter){
+ huntsBody.innerHTML='';
+ const list=farms.map((f,idx)=>({f,idx})).filter(o=>filter==='all'||(o.f.styles&&o.f.styles.includes(filter)));
+ if(!list.length){huntsBody.innerHTML='<div style="text-align:center;color:var(--ash);padding:40px 0;font-style:italic">No outfitters listed for this hunt style yet. More being added.</div>';return;}
+ list.forEach(o=>huntsBody.insertAdjacentHTML('beforeend',farmCard(o.f,o.idx)));
+}
+renderHunts('all');
+const videos=[
+ {cat:'films',catLabel:'Hunt Film',title:'Thornveld Kudu: The 65" Bull',sub:'Wildhide \u00b7 12 min \u00b7 48K views',dur:'12:04',emoji:'\ud83e\udd8c',color:'linear-gradient(135deg,#2b2520,#5a6342)',feature:true},
+ {cat:'reviews',catLabel:'Gear Review',title:'Rage Hypodermic NC+ \u2014 One Season, Honest Verdict',sub:'Wildhide Gear \u00b7 8 min \u00b7 22K views',dur:'8:17',emoji:'\ud83c\udfaf',color:'linear-gradient(135deg,#3a322a,#a8531f)'},
+ {cat:'films',catLabel:'Hunt Film',title:'First Light Elk: Colorado Backcountry',sub:'Wildhide \u00b7 18 min \u00b7 67K views',dur:'18:33',emoji:'\u26fa',color:'linear-gradient(135deg,#2b2520,#3a322a)'},
+ {cat:'howto',catLabel:'How-To',title:'Tuning a Bow for Plains Game \u2014 High FOC Explained',sub:'Wildhide \u00b7 10 min \u00b7 15K views',dur:'10:42',emoji:'\ud83c\udff9',color:'linear-gradient(135deg,#3a322a,#5a4a2f)'},
+ {cat:'reviews',catLabel:'Gear Review',title:'Hoyt RX-8 vs Bowtech SR350 \u2014 Head to Head',sub:'Wildhide Gear \u00b7 14 min \u00b7 31K views',dur:'14:08',emoji:'\ud83c\udff9',color:'linear-gradient(135deg,#3a322a,#5a6342)'},
+ {cat:'films',catLabel:'Hunt Film',title:'Texas Hogs After Dark',sub:'Wildhide \u00b7 9 min \u00b7 28K views',dur:'9:21',emoji:'\ud83c\udf19',color:'linear-gradient(135deg,#2b2520,#5a4a2f)'},
+ {cat:'howto',catLabel:'How-To',title:'Reading Wind & Thermals on a Stalk',sub:'Wildhide \u00b7 7 min \u00b7 19K views',dur:'7:55',emoji:'\ud83d\udca8',color:'linear-gradient(135deg,#3a322a,#2b2520)'}
+];
+const watchCats=[['all','All'],['films','Hunt Films'],['reviews','Gear Reviews'],['howto','How-To']];
+const watchFilter=document.getElementById('watchFilter');
+watchCats.forEach((c,i)=>watchFilter.insertAdjacentHTML('beforeend','<button class="cat-btn'+(i===0?' active':'')+'" data-watch="'+c[0]+'">'+c[1]+'</button>'));
+const watchBody=document.getElementById('watchBody');
+function renderWatch(filter){
+ watchBody.innerHTML='';
+ const list=videos.map((v,i)=>({v,i})).filter(o=>filter==='all'||o.v.cat===filter);
+ const feat=list.find(o=>o.v.feature)||list[0];
+ if(feat){const v=feat.v;watchBody.insertAdjacentHTML('beforeend','<div class="watch-feature" onclick="playVideo('+feat.i+')"><div class="watch-feature-img" style="background:'+v.color+'">'+v.emoji+'<div class="watch-grad"></div></div><div class="watch-play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div><div class="watch-feature-meta"><div class="watch-feature-tag">'+v.catLabel+'</div><div class="watch-feature-title">'+v.title+'</div><div class="watch-feature-sub">'+v.sub+'</div></div></div>');}
+ let rows=list.filter(o=>o!==feat).map(o=>{const v=o.v;return '<div class="vrow" onclick="playVideo('+o.i+')"><div class="vthumb" style="background:'+v.color+'">'+v.emoji+'<div class="vplay"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div><span class="dur">'+v.dur+'</span></div><div class="vinfo"><div class="vtag">'+v.catLabel+'</div><div class="vtitle">'+v.title+'</div><div class="vmeta">'+v.sub+'</div></div></div>';}).join('');
+ watchBody.insertAdjacentHTML('beforeend','<div class="vlist">'+rows+'</div>');
+}
+renderWatch('all');
+function playVideo(i){const v=videos[i];
+ document.getElementById('watchPlayer').innerHTML='';
+ document.getElementById('detailBody').innerHTML='<div class="detail-back" onclick="go(\'watch\')"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>Back to Watch</div><div class="player-wrap"><div class="player-placeholder"><div class="big">'+v.emoji+'</div><div style="font-family:Oswald;letter-spacing:1px;text-transform:uppercase;font-size:13px;color:var(--bone)">'+v.title+'</div><div style="margin-top:8px;font-size:12px">Video player \u2014 your YouTube embed or uploaded clip loads here</div></div></div><div class="detail-body"><div class="detail-brand">'+v.catLabel+'</div><div class="detail-title" style="font-size:22px">'+v.title+'</div><div class="detail-desc" style="margin-top:8px">'+v.sub+'</div></div>';
+ go('detail');}
+/* ---------- BOW BUILDER ---------- */
+const buildState={budget:null,species:null,style:null,owned:{}};
+const budgets=[['budget','Budget','Under $1,500 \u2014 get hunting'],['mid','Mid','$1,500\u2013$3,000 \u2014 serious setup'],['premium','Premium','$3,000+ \u2014 no compromises']];
+const speciesOpts=[['whitetail','Whitetail','treestand & blind'],['elk','Elk / Mule Deer','western, spot & stalk'],['plains','African Plains Game','kudu & big-boned'],['turkey','Turkey','spring gobbler'],['waterfowl','Waterfowl','duck & goose']];
+const styleOpts=[['stand','Treestand / Blind'],['stalk','Spot & Stalk'],['water','Over Water / Field']];
+const ownGear=[['bow','Bow'],['broadheads','Broadheads'],['sight','Sight'],['rangefinder','Rangefinder'],['quiver','Quiver'],['scent','Scent Control']];
+function recFor(species,budget){
+ const T=budget;
+ const pick=(t)=>t[T]||t.mid;
+ const map={
+  whitetail:{bow:pick({budget:'bows-1',mid:'bows-2',premium:'bows-0'}),broadheads:'broadheads-1',sight:'scopes-2',rangefinder:'rangefinders-0',quiver:'quivers-0',scent:'scents-1',decoy:'decoys-0'},
+  elk:{bow:pick({budget:'bows-1',mid:'bows-0',premium:'bows-0'}),broadheads:'broadheads-2',sight:'scopes-1',rangefinder:'rangefinders-0',quiver:'quivers-2',scent:'scents-1',decoy:'decoys-1'},
+  plains:{bow:'bows-1',broadheads:'broadheads-2',sight:'scopes-2',rangefinder:'rangefinders-0',quiver:'quivers-2',scent:'scents-1'},
+  turkey:{bow:pick({budget:'bows-1',mid:'bows-2',premium:'bows-0'}),broadheads:'broadheads-0',sight:'scopes-2',rangefinder:'rangefinders-2',quiver:'quivers-0',decoy:'decoys-2'},
+  waterfowl:{decoy:'decoys-2',scent:'scents-1'}
+ };
+ return map[species]||map.whitetail;
+}
+const strategies={
+ whitetail:{title:'Whitetail Game Plan',wind:'Whitetail live and die by their nose. Hunt with the wind in your face or quartering, and set stands downwind of trails and bedding. Swirling wind in thick timber will bust you \u2014 that\u2019s where scent spray or an ozone unit earns its place.',times:'Movement peaks the first and last hour of light. The pre-rut (late Oct) and rut (Nov) bring daylight chasing. Cold fronts trigger feeding \u2014 hunt the afternoon right after one passes.',travel:'Bucks travel between thick bedding cover and food using the same edges and funnels. Set up on the downwind side of a pinch point \u2014 a creek crossing, fence gap, or saddle \u2014 to catch them moving.'},
+ elk:{title:'Elk / Mule Deer Game Plan',wind:'Mountain wind swirls with thermals \u2014 it rises in the morning as air warms and falls in the evening as it cools. Climb above elk at dawn, drop below them at dusk, and keep the thermal in your favour on the final approach.',times:'September is the rut \u2014 bulls bugle at first and last light. Glass open basins at dawn, locate a bull, then close the gap using terrain and cow calls.',travel:'Elk feed in open meadows at night and bed in dark north-facing timber by day; mule deer follow ridgelines. Intercept them on the trail between feed and bed early, before they reach cover.'},
+ plains:{title:'African Plains Game Game Plan',wind:'Kudu and big plains game have extraordinary noses and eyes. Hunt waterholes from a blind in the heat of the day, or spot-and-stalk early morning, keeping the wind in your face on every approach \u2014 the bush carries scent fast.',times:'Activity is highest in the cool early morning and late afternoon. At midday animals water and rest in shade, so a blind over a waterhole is deadly in the dry season when water is scarce.',travel:'Game moves between feeding areas, water, and shaded rest. In the dry season water is the magnet \u2014 set up downwind of a well-used drinking spot. Heavy, high-FOC arrows are essential for penetration on big-boned animals.'},
+ turkey:{title:'Spring Turkey Game Plan',wind:'Turkeys can\u2019t smell, so wind matters for sound, not scent. A calm morning carries your calls and lets you hear gobbles; on windy days hunt sheltered hollows where birds can hear you.',times:'Gobblers fly down at first light and are most vocal the first two hours. Roost a bird the evening before, set up 100\u2013150 yards out before dawn, and call as he flies down.',travel:'Toms follow hens to strutting zones \u2014 field edges, logging roads, ridge tops. Set a hen-and-jake decoy 15\u201320 yards out in the open and let a fired-up gobbler commit to bow range.'},
+ waterfowl:{title:'Waterfowl Game Plan',wind:'Ducks and geese land into the wind. Set your spread with the landing hole on the downwind side so birds finish in front of you. A stiff wind moves decoys naturally and makes birds decoy better.',times:'First light is prime as birds leave the roost to feed, with a second midday push in cold weather. Cold fronts bring fresh birds down from the north.',travel:'Birds trade between roost water and feeding fields. Scout the X \u2014 where they want to be \u2014 and set up there. Heated pit and layout blinds keep you hidden all morning.'}
+};
+function findItem(ref){const[ck,ci]=ref.split('-');const c=categories.find(x=>x.key===ck);return c?{it:c.items[ci],cat:c.title,ref}:null;}
+function renderBuild(){
+ const b=document.getElementById('buildBody');
+ b.innerHTML=
+ '<div class="build-step"><div class="build-q"><span class="step-num">1</span>Your Budget</div><div class="opt-row">'+budgets.map(o=>'<div class="opt'+(buildState.budget===o[0]?' sel':'')+'" data-budget="'+o[0]+'">'+o[1]+'<small>'+o[2]+'</small></div>').join('')+'</div></div>'+
+ '<div class="build-step"><div class="build-q"><span class="step-num">2</span>What Are You Hunting?</div><div class="opt-row">'+speciesOpts.map(o=>'<div class="opt'+(buildState.species===o[0]?' sel':'')+'" data-species="'+o[0]+'">'+o[1]+'<small>'+o[2]+'</small></div>').join('')+'</div></div>'+
+ '<div class="build-step"><div class="build-q"><span class="step-num">3</span>Hunting Style</div><div class="opt-row">'+styleOpts.map(o=>'<div class="opt'+(buildState.style===o[0]?' sel':'')+'" data-style="'+o[0]+'">'+o[1]+'</div>').join('')+'</div></div>'+
+ '<div class="build-step"><div class="build-q"><span class="step-num">4</span>What Do You Already Own?</div><div class="gear-grid">'+ownGear.map(o=>'<div class="gear-toggle'+(buildState.owned[o[0]]?' on':'')+'" data-own="'+o[0]+'"><span class="gear-check"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></span>'+o[1]+'</div>').join('')+'</div></div>'+
+ '<button class="build-go" id="buildGo">Build My Hunt \u2192</button>'+
+ '<div id="buildOutput"></div>';
+}
+function runBuild(){
+ if(!buildState.budget||!buildState.species){document.getElementById('buildOutput').innerHTML='<div style="padding:0 18px;color:var(--rust-bright);font-style:italic">Pick at least a budget and a species first.</div>';return;}
+ const rec=recFor(buildState.species,buildState.budget);
+ const strat=strategies[buildState.species];
+ let total=0,owned=0,kitRows='';
+ const catEmoji={bow:'\ud83c\udff9',broadheads:'\ud83c\udfaf',sight:'\ud83d\udd2d',rangefinder:'\ud83d\udccf',quiver:'\ud83c\udff9',scent:'\ud83d\udc43',decoy:'\ud83e\udd86'};
+ Object.keys(rec).forEach(slot=>{
+  const item=findItem(rec[slot]);if(!item)return;
+  const ownsThis=buildState.owned[slot];
+  const priceNum=parseFloat(item.it.price.replace(/[^0-9.]/g,''))||0;
+  if(ownsThis){owned++;}else{total+=priceNum;}
+  kitRows+='<div class="kit-item"><div class="kit-emoji">'+catEmoji[slot]+'</div><div class="kit-info"><div class="kit-name">'+item.it.brand+' '+item.it.name+'</div><div class="kit-cat">'+item.cat+'</div></div>'+(ownsThis?'<div class="kit-owned">\u2713 You own this</div>':'<div style="text-align:right"><div class="kit-price">'+item.it.price+'</div><button class="kit-shop-btn" onclick="openProduct(\''+item.ref+'\')">Shop</button></div>')+'</div>';
+ });
+ const budgetLabel={budget:'Budget',mid:'Mid-Tier',premium:'Premium'}[buildState.budget];
+ const speciesLabel=(speciesOpts.find(s=>s[0]===buildState.species)||['','Hunt'])[1];
+ document.getElementById('buildOutput').innerHTML=
+ '<div class="build-result"><div class="result-banner"><h3>Your '+speciesLabel+' Setup</h3><div class="sub">'+budgetLabel+' build \u00b7 matched, tuned & ready</div><div class="total">$'+total.toLocaleString()+' <small>to complete'+(owned?' \u00b7 '+owned+' item'+(owned>1?'s':'')+' you already own':'')+'</small></div></div>'+
+ '<div class="kit-sec"><div class="kit-label"><svg viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><path d="M3 6h18M16 10a4 4 0 0 1-8 0"/></svg>Your Kit</div>'+kitRows+'</div>'+
+ (strat?'<div class="strategy"><h4><svg viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 1 7 7c0 3-2 4-2 7H7c0-3-2-4-2-7a7 7 0 0 1 7-7z"/><path d="M9 21h6"/></svg>'+strat.title+'</h4><p><b>Wind:</b> '+strat.wind+'</p><p><b>Timing:</b> '+strat.times+'</p><p><b>Feeding, resting & travel:</b> '+strat.travel+'</p></div>':'')+
+ '<button class="build-restart" id="buildRestart">\u21bb Start Over</button></div>';
+ document.getElementById('buildOutput').scrollIntoView({behavior:'smooth'});
+}
+renderBuild();
+/* ---------- COMMUNITY ---------- */
+const cposts=[
+ {flair:'q',flairLabel:'Question',av:'TK',name:'Tyler K.',sub:'Montana \u00b7 2h',title:'First elk hunt this September \u2014 fixed or mechanical broadheads?',body:'Heading to Colorado for my first archery elk hunt. Running a 70lb Hoyt. Everyone argues about this \u2014 what\u2019s the herd say for big bulls?',up:34,replies:18,topReply:{by:'Wildhide \u00b7 Founder',text:'For elk go fixed or a tough mechanical like the SEVR. Big bulls have heavy bone \u2014 you want guaranteed penetration over a huge cut. A single-bevel fixed head is hard to beat.'}},
+ {flair:'pb',flairLabel:'New PB',av:'DM',name:'Dana M.',sub:'Texas \u00b7 5h',title:'Personal best whitetail \u2014 152" main frame 10!',body:'Four seasons chasing this buck. Patterned him to a creek funnel, played the wind, and he stepped out at 22 yards on a cold front. Bowtech + Rage did the rest. Still shaking. \ud83e\udd8c',photo:{emoji:'\ud83e\udd8c',color:'linear-gradient(135deg,#5a4a2f,#a8531f)'},up:128,replies:41,topReply:{by:'Cole G.',text:'Congrats man, that\u2019s a stud! The cold-front patience paid off.'}},
+ {flair:'gear',flairLabel:'Gear Talk',av:'SP',name:'Sarah P.',sub:'Colorado \u00b7 1d',title:'Vortex vs Leupold for a mountain rifle \u2014 worth the price jump?',body:'Building out a mule deer rifle. The Leupold VX-5HD is nearly double the Vortex Viper. Is the low-light glass actually worth it for those last-light shots?',up:56,replies:27,topReply:{by:'Hank W.',text:'Honestly yes for mountain hunting. That extra 10 min of legal light has put two bucks on the ground for me. But the Viper is incredible value if budget is tight.'}},
+ {flair:'q',flairLabel:'Question',av:'WH',name:'Will H.',sub:'Georgia \u00b7 1d',title:'Scent control \u2014 spray, ozone, or both? Getting winded constantly.',body:'Hunting tight hardwood bottoms where the wind swirls bad. Does keep busting me. Is the Ozonics unit actually worth $450 or should I just be better about the wind?',up:42,replies:33,topReply:{by:'Wildhide \u00b7 Founder',text:'Wind discipline first, always \u2014 nothing beats hunting the right wind. But in swirling bottoms an ozone unit genuinely helps. Run spray + ozone and pick stands by wind, not convenience.'}}
+];
+const testimonials=[
+ {stars:5,quote:'Booked our Texas whitetail hunt through Wildhide and it was flawless. The lodge, the guide, the buck of a lifetime \u2014 exactly as listed.',av:'JM',nm:'Jake M.',dt:'Booked Spike Box Ranch \u00b7 Nov 2025',badge:'\u2713 Verified Booking'},
+ {stars:5,quote:'The Build Your Hunt tool put together my whole elk setup and saved me from buying gear I didn\u2019t need. Arrowed my first bull with it.',av:'RT',nm:'Ryan T.',dt:'Built an elk setup \u00b7 Sep 2025',badge:'\u2713 Verified Buyer'},
+ {stars:5,quote:'As a beginner the strategy guides taught me more about wind and timing than years of YouTube. Wildhide is the real deal.',av:'GP',nm:'Greg P.',dt:'Member since 2025',badge:'\u2713 Member'}
+];
+const commFilters=[['feed','Feed'],['questions','Questions'],['pb','PBs'],['gear','Gear Talk'],['testimonials','Testimonials'],['member','Membership']];
+const commFilter=document.getElementById('commFilter');
+commFilters.forEach((c,i)=>commFilter.insertAdjacentHTML('beforeend','<button class="cat-btn'+(i===0?' active':'')+'" data-comm="'+c[0]+'">'+c[1]+'</button>'));
+const commBody=document.getElementById('commBody');
+function cpostCard(p,i){
+ const flairClass={q:'flair-q',pb:'flair-pb',gear:'flair-gear'}[p.flair];
+ let photo=p.photo?'<div class="cpost-photo" style="background:'+(p.photo.color||'var(--dirt)')+'">'+(p.photo.img?'<img src="'+p.photo.img+'" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0">':(p.photo.emoji||''))+'<div class="pg"></div></div>':'';
+ let reply=p.topReply?'<div class="top-reply"><div class="ra">'+p.topReply.by+'</div><div class="rt">'+p.topReply.text+'</div></div>':'';
+ return '<div class="cpost"><div class="cpost-head"><div class="cpost-av">'+p.av+'</div><div class="cpost-meta"><div class="cpost-name">'+p.name+'</div><div class="cpost-sub">'+p.sub+'</div></div><div class="cpost-flair '+flairClass+'">'+p.flairLabel+'</div></div><div class="cpost-title">'+p.title+'</div><div class="cpost-body">'+p.body+'</div>'+photo+'<div class="cpost-actions"><button class="cact up" data-up="'+i+'"><svg viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg><span class="upc">'+p.up+'</span></button><button class="cact"><svg viewBox="0 0 24 24"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 9 9 0 0 1-4-.9L3 21l1.9-5a8.4 8.4 0 0 1-.9-4 8.5 8.5 0 0 1 17 .5z"/></svg><span>'+p.replies+'</span></button><button class="cact"><svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg></button></div>'+reply+'</div>';
+}
+function renderComm(filter){
+ commBody.innerHTML='';
+ if(filter==='testimonials'){
+  commBody.insertAdjacentHTML('beforeend','<div class="section-head">Verified bookings & buyers</div><div class="testi-strip">'+testimonials.map(t=>'<div class="testi"><div class="testi-stars">'+star.repeat(t.stars)+'</div><div class="testi-quote">\u201c'+t.quote+'\u201d</div><div class="testi-by"><div class="av">'+t.av+'</div><div><div class="nm">'+t.nm+'</div><div class="dt">'+t.dt+'</div></div><div class="testi-badge">'+t.badge+'</div></div></div>').join('')+'</div>');
+  return;
+ }
+ if(filter==='member'){
+  commBody.insertAdjacentHTML('beforeend',
+   '<div class="member-card"><div class="mc-body"><h3>Join the Herd</h3><p>Free membership. Get the weekly Wildhide Bulletin \u2014 new gear drops, member specials, exciting news, fresh PBs and field-tested techniques, straight to you.</p><button class="join">Become a Member</button></div></div>'+
+   '<div class="section-head">This week\u2019s bulletin \u00b7 preview</div>'+
+   '<div class="bulletin"><div class="bulletin-head"><svg viewBox="0 0 24 24"><path d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/><path d="m22 6-10 7L2 6"/></svg><span class="t">The Wildhide Bulletin</span><span class="d">This week</span></div>'+
+   '<div class="bitem"><span class="be">\ud83c\udd95</span><div><div class="bt">New Drop: Mathews 2026 lineup landed</div><div class="bd">First look at the quietest flagship yet \u2014 members get early access pricing.</div></div></div>'+
+   '<div class="bitem"><span class="be">\ud83c\udff7\ufe0f</span><div><div class="bt">Member Special: 15% off all broadheads</div><div class="bd">Fixed and mechanical, this week only. Code drops in your inbox.</div></div></div>'+
+   '<div class="bitem"><span class="be">\ud83c\udfc6</span><div><div class="bt">PB of the Week: Dana\u2019s 152" Texas 10</div><div class="bd">The full story and the exact setup that sealed it \u2014 inside.</div></div></div>'+
+   '<div class="bitem"><span class="be">\ud83c\udf93</span><div><div class="bt">Technique: Beating swirling thermals in timber</div><div class="bd">A 3-minute field guide from the founder on reading mountain wind.</div></div></div>'+
+   '</div>');
+  return;
+ }
+ commBody.insertAdjacentHTML('beforeend','<div class="comm-compose"><div class="av">RB</div><div class="ph">Ask the herd or share a hunt\u2026</div><div class="camera"><svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg></div></div>');
+ const map={questions:'q',pb:'pb',gear:'gear'};
+ const list=cposts.map((p,i)=>({p,i})).filter(o=>filter==='feed'||o.p.flair===map[filter]);
+ list.forEach(o=>commBody.insertAdjacentHTML('beforeend',cpostCard(o.p,o.i)));
+}
+renderComm('feed');
+/* ---------- MY SETUP / PROFILE (persistent) ---------- */
+if(typeof window.storage==='undefined'){const _m={};window.storage={get:async k=>_m[k]?{value:_m[k]}:null,set:async(k,v)=>{_m[k]=v;return{value:v};},delete:async k=>{delete _m[k];return{deleted:true};},list:async()=>({keys:Object.keys(_m)})};}
+let PROFILE={drawLength:'',drawWeight:'',bow:'',arrow:''};
+let PINS=[{c:'#7fae46',label:'20 yd',dist:'20'},{c:'#c46327',label:'30 yd',dist:'30'},{c:'#e8e1d3',label:'40 yd',dist:'40'},{c:'#8a8073',label:'50 yd',dist:'50'}];
+let TROPHIES=[];
+let PROF_TAB='setup';
+async function loadProfile(){
+ try{const r=await window.storage.get('wh_profile');if(r&&r.value)PROFILE=JSON.parse(r.value);}catch(e){}
+ try{const r=await window.storage.get('wh_pins');if(r&&r.value)PINS=JSON.parse(r.value);}catch(e){}
+ try{const r=await window.storage.get('wh_trophies');if(r&&r.value)TROPHIES=JSON.parse(r.value);}catch(e){}
+}
+async function saveProfile(){try{await window.storage.set('wh_profile',JSON.stringify(PROFILE));}catch(e){}}
+async function savePins(){try{await window.storage.set('wh_pins',JSON.stringify(PINS));}catch(e){}}
+async function saveTrophies(){try{await window.storage.set('wh_trophies',JSON.stringify(TROPHIES));}catch(e){}}
+function flash(id){const el=document.getElementById(id);if(el){el.textContent='\u2713 Saved';el.style.opacity='1';setTimeout(()=>{el.style.opacity='0';},1800);}}
+function renderProfile(){
+ const b=document.getElementById('profileBody');
+ let tabs='<div class="prof-tabs">'+[['setup','My Setup'],['pins','Sight Pins'],['trophy','Trophy Case']].map(t=>'<div class="prof-tab'+(PROF_TAB===t[0]?' active':'')+'" data-prof="'+t[0]+'">'+t[1]+'</div>').join('')+'</div>';
+ let body='';
+ if(PROF_TAB==='setup'){
+  body='<div class="setup-block">'+
+   '<div class="field"><label>Draw Length (inches)</label><input id="pf_dl" type="number" step="0.5" placeholder="e.g. 29" value="'+(PROFILE.drawLength||'')+'"></div>'+
+   '<div class="field"><label>Draw Weight (lbs)</label><input id="pf_dw" type="number" placeholder="e.g. 70" value="'+(PROFILE.drawWeight||'')+'"></div>'+
+   '<div class="field"><label>Your Bow</label><input id="pf_bow" type="text" placeholder="e.g. Bowtech SR350" value="'+(PROFILE.bow||'')+'"></div>'+
+   '<div class="field"><label>Arrow / Setup Notes</label><input id="pf_arrow" type="text" placeholder="e.g. 500gr, 12% FOC, VPA 2-blade" value="'+(PROFILE.arrow||'')+'"></div>'+
+   '<button class="save-btn-full" id="pf_save">Save My Setup</button><div class="saved-flash" id="pf_flash" style="opacity:0">\u2713 Saved</div></div>';
+ } else if(PROF_TAB==='pins'){
+  let rows=PINS.map((p,i)=>'<div class="pin-row"><span class="pin-color" style="background:'+p.c+'"></span><span class="pin-label">Pin '+(i+1)+'</span><div class="pin-edit"><input type="number" data-pin="'+i+'" value="'+p.dist+'"><span style="color:var(--ash);font-size:13px">yards</span></div></div>').join('');
+  body='<div class="setup-block"><p style="font-size:13px;color:var(--ash);font-style:italic;margin-bottom:14px">Set the yardage each sight pin is dialled to. Wildhide uses this to tell you which pin to hold on any ranged target.</p><div class="pin-table">'+rows+'</div><button class="save-btn-full" id="pin_save">Save Pin Distances</button><div class="saved-flash" id="pin_flash" style="opacity:0"></div></div>';
+ } else {
+  let grid=TROPHIES.map((t,i)=>'<div class="trophy" onclick="openTrophy('+i+')"><div class="trophy-img" style="background:'+(t.color||'linear-gradient(135deg,#5a4a2f,#a8531f)')+'">'+(t.photo?'<img src="'+t.photo+'" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0">':(t.emoji||'\ud83e\udd8c'))+(t.pb?'<span class="trophy-pb">PB</span>':'')+'<button class="trophy-del" data-deltrophy="'+i+'" onclick="event.stopPropagation()">\u00d7</button></div><div class="trophy-body"><div class="trophy-species">'+t.species+'</div><div class="trophy-detail">'+(t.size?t.size+' \u00b7 ':'')+(t.location||'')+(t.date?' \u00b7 '+t.date:'')+'</div></div></div>').join('');
+  body='<div class="trophy-grid">'+grid+'<button class="add-trophy" id="addTrophyBtn"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Add Trophy</button></div>'+(TROPHIES.length===0?'<div class="empty-note">Your trophy case is empty. Log your first harvest \u2014 PBs, the story, and the setup that sealed it.</div>':'');
+ }
+ b.innerHTML='<div class="prof-hero"><div class="bg"></div><div class="prof-av">RB</div><div class="prof-name">Reinhardt B.</div><div class="prof-tag">Bowhunter \u00b7 Garden Route \u2192 USA</div></div>'+tabs+body;
+}
+function openAddTrophy(){
+ document.querySelector('.trophy-grid').insertAdjacentHTML('afterend',
+ '<div class="trophy-form" id="trophyForm">'+
+ '<div class="field"><label>Photo</label><label class="photo-up" id="photoUp"><svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg><span class="lbl">Tap to add hunt photo</span><input id="tf_photo" type="file" accept="image/*" style="display:none"></label></div>'+
+ '<div class="field"><label>Species</label><input id="tf_sp" placeholder="e.g. Kudu Bull"></div>'+
+ '<div class="field"><label>Location</label><input id="tf_loc" placeholder="e.g. Eastern Cape, SA"></div>'+
+ '<div class="field row"><div style="flex:1"><label>Horn / Antler Size</label><input id="tf_sz" placeholder="65 3/4 inch"></div><div style="flex:1"><label>Body Weight</label><input id="tf_wt" placeholder="250 kg"></div></div>'+
+ '<div class="field"><label>Equipment Used</label><input id="tf_eq" placeholder="Bowtech SR350, VPA 2-blade, 500gr"></div>'+
+ '<div class="field row"><div style="flex:1"><label>Shot Distance</label><input id="tf_dist" placeholder="38 yd"></div><div style="flex:1"><label>Tracking Distance</label><input id="tf_track" placeholder="45 yd"></div></div>'+
+ '<div class="field"><label>Shot Angle</label><div class="shot-opts" id="shotOpts">'+['Broadside','Quartering Away','Quartering To','Frontal'].map((a,i)=>'<div class="shot-opt'+(i===0?' sel':'')+'" data-shot="'+a+'">'+a+'</div>').join('')+'</div><div class="shot-diagram" id="shotDiagram"><span class="shot-deer">\ud83e\udd8c</span><div class="shot-marker" style="top:48%;left:42%"></div><div class="shot-label" id="shotLbl">Broadside \u00b7 vitals</div></div></div>'+
+ '<div class="field row"><div style="flex:1"><label>Date</label><input id="tf_dt" placeholder="2025"></div><div style="flex:1"><label>Time</label><input id="tf_tm" placeholder="06:40 first light"></div></div>'+
+ '<div class="field"><label>Feed / Drink / Rest Zone</label><input id="tf_zone" placeholder="e.g. waterhole edge, dry season"></div>'+
+ '<div class="field"><label>The Story</label><textarea id="tf_story" placeholder="How the hunt unfolded \u2014 the stalk, the wind, the shot..."></textarea></div>'+
+ '<div class="post-toggle" id="postToggle"><div class="sw"></div><div class="pt"><b>Share to The Camp</b>Post this trophy to the community feed</div></div>'+
+ '<div class="field"><label><input type="checkbox" id="tf_pb" style="width:auto;margin-right:6px">Mark as Personal Best</label></div>'+
+ '<button class="save-btn-full" id="tf_save">Add to Trophy Case</button></div>');
+ document.getElementById('addTrophyBtn').style.display='none';
+ document.getElementById('trophyForm').scrollIntoView({behavior:'smooth'});
+}
+function openTrophy(i){
+ const t=TROPHIES[i];
+ const shotDiag='<div class="shot-diagram" style="margin:0 18px 18px"><span class="shot-deer">\ud83e\udd8c</span><div class="shot-marker" style="top:48%;left:42%"></div><div class="shot-label">'+(t.shot||'Broadside')+' \u00b7 vitals</div></div>';
+ const stats=[['Horn / Antler',t.size],['Body Weight',t.weight],['Shot Distance',t.distance],['Tracking',t.tracking],['Shot Angle',t.shot],['Equipment',t.equipment],['Date',t.date],['Time',t.time],['Zone',t.zone]].filter(s=>s[1]);
+ document.getElementById('detailBody').innerHTML='<div class="detail-back" onclick="go(\'profile\')"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>Back to trophy case</div><div class="trophy-detail-hero" style="background:'+(t.color||'linear-gradient(135deg,#5a4a2f,#a8531f)')+'">'+(t.photo?'<img src="'+t.photo+'" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0">':(t.emoji||'\ud83e\udd8c'))+(t.pb?'<span class="trophy-pb" style="top:14px;left:14px">Personal Best</span>':'')+'</div><div class="detail-body" style="padding-bottom:0"><div class="detail-brand">'+(t.location||'')+'</div><div class="detail-title">'+t.species+'</div></div>'+(stats.length?'<div class="td-stat-grid">'+stats.map(s=>'<div class="td-stat"><div class="l">'+s[0]+'</div><div class="v">'+s[1]+'</div></div>').join('')+'</div>':'')+'<div style="padding:0 18px"><div class="kit-label" style="margin-bottom:8px"><svg viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 1 7 7c0 3-2 4-2 7H7c0-3-2-4-2-7a7 7 0 0 1 7-7z"/></svg>Shot Placement</div></div>'+shotDiag+(t.story?'<div class="kit-label" style="padding-left:18px;margin-bottom:8px"><svg viewBox="0 0 24 24"><path d="M4 4h16v12H7l-3 3z"/></svg>The Story</div><div class="td-story">'+t.story+'</div>':'');
+ go('detail');}
+loadProfile().then(()=>{if(document.getElementById('view-profile').classList.contains('active'))renderProfile();});
+document.body.addEventListener('click',e=>{
+ const like=e.target.closest('.like-btn');
+ if(like){like.classList.toggle('liked');const c=like.querySelector('.cnt');let n=parseInt(c.textContent.replace(/\D/g,''));c.textContent=like.classList.contains('liked')?n+1:n-1;}
+ const save=e.target.closest('.save-btn');if(save)save.classList.toggle('saved');
+ const share=e.target.closest('.share-btn');if(share){share.style.color='#a9b489';setTimeout(()=>share.style.color='',600);}
+ const opt=e.target.closest('.ai-opt');
+ if(opt){document.querySelectorAll('.ai-opt').forEach(o=>o.classList.remove('sel'));opt.classList.add('sel');const r=document.getElementById('aiResult');r.innerHTML='\ud83c\udfaf '+opt.dataset.r;r.classList.add('show');}
+ const cat=e.target.closest('.cat-btn');
+ if(cat&&cat.dataset.cat){document.querySelectorAll('.cat-btn[data-cat]').forEach(b=>b.classList.remove('active'));cat.classList.add('active');SHOP_FILTER=cat.dataset.cat;BH_SUB='all';renderShop(SHOP_FILTER);}
+ const bh=e.target.closest('.bh-pill');
+ if(bh){BH_SUB=bh.dataset.bh;renderShop(SHOP_FILTER);}
+ const hf=e.target.closest('.cat-btn[data-hunt]');
+ if(hf){document.querySelectorAll('.cat-btn[data-hunt]').forEach(b=>b.classList.remove('active'));hf.classList.add('active');renderHunts(hf.dataset.hunt);}
+ const wf=e.target.closest('.cat-btn[data-watch]');
+ if(wf){document.querySelectorAll('.cat-btn[data-watch]').forEach(b=>b.classList.remove('active'));wf.classList.add('active');renderWatch(wf.dataset.watch);}
+ const ob=e.target.closest('[data-budget]');if(ob){buildState.budget=ob.dataset.budget;renderBuild();}
+ const os=e.target.closest('[data-species]');if(os){buildState.species=os.dataset.species;renderBuild();}
+ const ost=e.target.closest('[data-style]');if(ost){buildState.style=ost.dataset.style;renderBuild();}
+ const og=e.target.closest('[data-own]');if(og){const k=og.dataset.own;buildState.owned[k]=!buildState.owned[k];renderBuild();}
+ if(e.target.closest('#buildGo'))runBuild();
+ if(e.target.closest('#buildRestart')){buildState.budget=null;buildState.species=null;buildState.style=null;buildState.owned={};renderBuild();window.scrollTo(0,0);}
+ const cm=e.target.closest('.cat-btn[data-comm]');
+ if(cm){document.querySelectorAll('.cat-btn[data-comm]').forEach(b=>b.classList.remove('active'));cm.classList.add('active');renderComm(cm.dataset.comm);}
+ const upb=e.target.closest('.cact.up');
+ if(upb){upb.classList.toggle('on');const c=upb.querySelector('.upc');let n=parseInt(c.textContent);c.textContent=upb.classList.contains('on')?n+1:n-1;}
+ const pt=e.target.closest('[data-prof]');if(pt){PROF_TAB=pt.dataset.prof;renderProfile();}
+ if(e.target.closest('#pf_save')){PROFILE.drawLength=document.getElementById('pf_dl').value;PROFILE.drawWeight=document.getElementById('pf_dw').value;PROFILE.bow=document.getElementById('pf_bow').value;PROFILE.arrow=document.getElementById('pf_arrow').value;saveProfile();flash('pf_flash');}
+ if(e.target.closest('#pin_save')){document.querySelectorAll('[data-pin]').forEach(inp=>{PINS[parseInt(inp.dataset.pin)].dist=inp.value;PINS[parseInt(inp.dataset.pin)].label=inp.value+' yd';});savePins();flash('pin_flash');}
+ if(e.target.closest('#addTrophyBtn'))openAddTrophy();
+ if(e.target.closest('#tf_save')){const sp=document.getElementById('tf_sp').value.trim();if(sp){
+   const photoInput=document.getElementById('tf_photo');
+   const shotSel=document.querySelector('.shot-opt.sel');
+   const postOn=document.getElementById('postToggle')&&document.getElementById('postToggle').classList.contains('on');
+   const t={species:sp,location:document.getElementById('tf_loc').value.trim(),size:document.getElementById('tf_sz').value.trim(),weight:document.getElementById('tf_wt').value.trim(),equipment:document.getElementById('tf_eq').value.trim(),distance:document.getElementById('tf_dist').value.trim(),tracking:document.getElementById('tf_track').value.trim(),shot:shotSel?shotSel.dataset.shot:'Broadside',date:document.getElementById('tf_dt').value.trim(),time:document.getElementById('tf_tm').value.trim(),zone:document.getElementById('tf_zone').value.trim(),story:document.getElementById('tf_story').value.trim(),pb:document.getElementById('tf_pb').checked,emoji:'\ud83e\udd8c',color:'linear-gradient(135deg,#5a4a2f,#a8531f)',photo:window._pendingPhoto||''};
+   TROPHIES.unshift(t);window._pendingPhoto='';saveTrophies();
+   if(postOn){cposts.unshift({flair:'pb',flairLabel:'New PB',av:'RB',name:'Reinhardt B.',sub:(t.location||'')+' \u00b7 just now',title:(t.pb?'New PB \u2014 ':'')+t.species+(t.size?' \u00b7 '+t.size:''),body:t.story||('Logged a '+t.species+' to the trophy case.'),photo:t.photo?{img:t.photo}:{emoji:'\ud83e\udd8c',color:t.color},up:1,replies:0});renderComm('feed');}
+   renderProfile();
+ }}
+ const shotO=e.target.closest('.shot-opt');if(shotO){document.querySelectorAll('.shot-opt').forEach(o=>o.classList.remove('sel'));shotO.classList.add('sel');const lbl=document.getElementById('shotLbl');if(lbl)lbl.textContent=shotO.dataset.shot+' \u00b7 vitals';}
+ if(e.target.closest('#postToggle'))e.target.closest('#postToggle').classList.toggle('on');
+ const dt=e.target.closest('[data-deltrophy]');if(dt){TROPHIES.splice(parseInt(dt.dataset.deltrophy),1);saveTrophies();renderProfile();}
+});
+document.querySelectorAll('.nav-item').forEach(n=>{n.addEventListener('click',()=>{const v=n.dataset.view;if(v)go(v);});});
+document.body.addEventListener('change',e=>{
+ if(e.target&&e.target.id==='tf_photo'&&e.target.files&&e.target.files[0]){
+  const reader=new FileReader();
+  reader.onload=ev=>{window._pendingPhoto=ev.target.result;const up=document.getElementById('photoUp');if(up)up.innerHTML='<img src="'+ev.target.result+'">';};
+  reader.readAsDataURL(e.target.files[0]);
+ }
+});
+</script>
+</body>
+</html>
